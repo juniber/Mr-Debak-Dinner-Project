@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "946206124259",
+    "firebase_url": "https://mr-debak-dinner-default-rtdb.firebaseio.com",
     "project_id": "mr-debak-dinner",
     "storage_bucket": "mr-debak-dinner.firebasestorage.app"
   },
