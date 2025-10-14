@@ -63,7 +63,7 @@ public class LoginManager : MonoBehaviour
             if (snapshot.Exists)
             {
                 // DB에 저장된 데이터를 UserData 객체로 변환
-                UserData userData = JsonUtility.FromJson<UserData>(snapshot.GetRawJsonValue());
+                UserProfile userData = JsonUtility.FromJson<UserProfile>(snapshot.GetRawJsonValue());
                 string role = userData.role;
 
                 // 역할에 따라 다른 패널 보여주기 
@@ -73,7 +73,14 @@ public class LoginManager : MonoBehaviour
                 }
                 else if (role == "Customer")
                 {
-                    UIManager.Instance.ShowPanel("CustomerMainPanel");
+                    if (string.IsNullOrEmpty(userData.address))
+                    {
+                        UIManager.Instance.ShowPanel("AddressPanel");
+                    }
+                    else
+                    {
+                        UIManager.Instance.ShowPanel("CustomerMainPanel");
+                    }
                 }
                 else
                 {
@@ -88,7 +95,7 @@ public class LoginManager : MonoBehaviour
         catch (FirebaseException ex)
         {
             // Friebase 관련 에러 처리 
-            Debug.LogError($"Friebase 로그인 에러 : {ex.Message}");
+            Debug.LogError($"Firebase 로그인 에러 : {ex.Message}");
             AuthError errorCode = (AuthError)ex.ErrorCode;
             switch (errorCode)
             {

@@ -13,12 +13,14 @@ public class RegisterManager : MonoBehaviour
 {
     // UI 요소들을 Inspector 창에서 연결
     [Header("UI Elements")]
-    public TMP_InputField idInput;          // 아이디 입력창
-    public TMP_InputField passwordInput;    // 비밀번호 입력창
-    public Toggle staffToggle;              // '직원' 역할 선택 토글
-    public Toggle customerToggle;           // '고객' 역할 선택 토글
-    public Button registerButton;           // 회원가입 버튼
-    public TMP_Text statusText;             // 상태 메시지를 표시할 텍스트
+    public TMP_InputField idInput;             // 아이디 입력창
+    public TMP_InputField passwordInput;       // 비밀번호 입력창
+    public TMP_InputField nameInput;           // 이름 입력창
+    public TMP_InputField phoneNumberInput;    // 휴대폰 번호 입력창
+    public Toggle staffToggle;                 // '직원' 역할 선택 토글
+    public Toggle customerToggle;              // '고객' 역할 선택 토글
+    public Button registerButton;              // 회원가입 버튼
+    public TMP_Text statusText;                // 상태 메시지를 표시할 텍스트
 
     private FirebaseAuth auth;
     private DatabaseReference dbReference;
@@ -41,6 +43,12 @@ public class RegisterManager : MonoBehaviour
         string emailForFirebase = userId + "@mrdebak.app";
 
         string password = passwordInput.text;
+        string name = nameInput.text;
+
+        // 휴대폰 번호에서 '-' 기호 제거
+        string phoneNumber = phoneNumberInput.text.Replace("-", "");
+
+
         string role = staffToggle.isOn ? "Staff" : "Customer"; // 토글 선택에 따라 역할 결정
 
         // 입력값 유효성 검사
@@ -52,11 +60,11 @@ public class RegisterManager : MonoBehaviour
 
         // 회원가입 처리 시작
         statusText.text = "회원가입 진행 중...";
-        _= RegisterUserAsync(emailForFirebase, password, role);
+        _= RegisterUserAsync(emailForFirebase, password, role, name, phoneNumber);
     }
 
     // 실제 Firebase 회원가입 및 데이터 저장을 처리하는 비동기 함수
-    private async Task RegisterUserAsync(string email, string password, string role)
+    private async Task RegisterUserAsync(string email, string password, string role, string name, string phone)
     {
         try
         {
@@ -65,9 +73,9 @@ public class RegisterManager : MonoBehaviour
             FirebaseUser newUser = result.User;
             Debug.Log($"사용자 생성 완료 : {newUser.Email} ({newUser.UserId})");
 
-            // 2. Realtime Database 사용자 역할(Role) 정보 저장
-            UserData userData = new UserData(role);
-            string json = JsonUtility.ToJson(userData);
+            // 2. Realtime Database UserProfile 객체 생성
+            UserProfile userProfile = new UserProfile(role, name, phone);
+            string json = JsonUtility.ToJson(userProfile);
 
             // 생성된 사용자의 고유 ID(UserId를 키(Key)로 사용하여 데이터를 저장
             await dbReference.Child("users").Child(newUser.UserId).SetRawJsonValueAsync(json);
@@ -98,16 +106,5 @@ public class RegisterManager : MonoBehaviour
                     break;
             }
         }
-    }
-}
-
-[System.Serializable]
-public class UserData
-{
-    public string role;
-
-    public UserData(string role)
-    {
-        this.role = role;
     }
 }
