@@ -52,7 +52,7 @@ public class AddressManager : MonoBehaviour
         }
 
         statusText.text = "위치 정보를 수신 중입니다...";
-        Input.location.Start();
+        Input.location.Start(1, 1);
 
         int maxWait = 20;
         while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
@@ -85,9 +85,10 @@ public class AddressManager : MonoBehaviour
                 string jsonResponse = webRequest.downloadHandler.text;
                 // 간단한 JSON 파싱으로 주소(display_name)만 추출
                 var data = JsonUtility.FromJson<GeocodingResponse>(jsonResponse);
-                if (data != null && !string.IsNullOrEmpty(data.display_name))
+                if (data != null && data.address != null)
                 {
-                    fetchedAddress = data.display_name;
+                    // 상세 주소 정보를 조합하여 원하는 형식의 주소 문자열을 생성
+                    fetchedAddress = BuildKoreanAddress(data.address);
                     adressDisplayText.text = fetchedAddress;
                     statusText.text = "";
                 }
@@ -103,6 +104,25 @@ public class AddressManager : MonoBehaviour
             }
         }
     }
+
+    // API 응답(Address 객체)을 받아 한국 주소 형식으로 조합하는 함수
+    private string BuildKoreanAddress(Address address)
+    {
+        System.Text.StringBuilder addressBuilder = new System.Text.StringBuilder();
+
+        // 시/도 -> 시/군/구 -> 동/읍/면 -> 도로명 순서로 조합
+        if (!string.IsNullOrEmpty(address.city))
+            addressBuilder.Append(address.city).Append(" ");
+        if (!string.IsNullOrEmpty(address.city_district))
+            addressBuilder.Append(address.city_district).Append(" ");
+        if (!string.IsNullOrEmpty(address.suburb))
+            addressBuilder.Append(address.suburb).Append(" ");
+        if (!string.IsNullOrEmpty(address.road))
+            addressBuilder.Append(address.road);
+
+        return addressBuilder.ToString().Trim(); // 마지막에 있을 수 있는 공백 제거
+    }
+
 
     private void OnSaveAddressButtonClicked()
     {
@@ -135,7 +155,7 @@ public class AddressManager : MonoBehaviour
         }
     }
 
-    private void OnBackButtonClicked()
+    public void OnBackButtonClicked()
     {
         UIManager.Instance.ShowPanel("CustomerMainPanel");
     }
@@ -156,6 +176,17 @@ public class AddressManager : MonoBehaviour
     [System.Serializable]
     private class GeocodingResponse
     {
-        public string display_name;
+        public Address address;
+    }
+
+    [System.Serializable]
+    private class Address
+    {
+        // API가 제공하는 다양한 주소 구성 요소들
+        public string country;          // 국가
+        public string city;             // 시/도
+        public string city_district;    // 시/군/구
+        public string suburb;           // 동/읍/면 (상세)
+        public string road;             // 도로명
     }
 }
