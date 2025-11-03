@@ -4,6 +4,7 @@ using TMPro;
 using Firebase.Database;
 using System.Threading.Tasks;
 using System.Collections;
+using System;
 
 public class SelectDinnerManager : MonoBehaviour
 {
@@ -12,9 +13,11 @@ public class SelectDinnerManager : MonoBehaviour
     public Button frenchButton;
     public Button englishButton;
     public Button champagneButton;
-    public TMP_Text statusText;     // "메뉴 품절"을 표시할 텍스트
 
     private DatabaseReference dbReference;
+
+    // 비동기 확인 중 중복 클릭을 방지하기 위한 플래그
+    private bool isCheckingValidation = false;
 
     private void Start()
     {
@@ -30,7 +33,16 @@ public class SelectDinnerManager : MonoBehaviour
     // 디너 코스 버튼이 클릭되었을 때 호출
     private void OnDinnerButtonClicked(CourseType courseType)
     {
-        statusText.text = "메뉴 재고를 확인 중입니다...";
+        // 이미 재고 확인 중이라면 아무것도 하지 않고 함수 종료
+        if (isCheckingValidation)
+        {
+            return;
+        }
+        // 확인 시작, 플래그를 true로 설정
+        isCheckingValidation = true;
+
+        // 상태 메시지를 UIManager를 통해 표시 (5초간 유지)
+        UIManager.Instance.ShowTemporaryStatus("메뉴 재고를 확인 중입니다...", 5f);
         // 비동기 함수를 호출하고 결과는 기다리지 않음 (Fire-and-forget)
         _ = CheckMenuValidationAsync(courseType);
     }
@@ -46,17 +58,24 @@ public class SelectDinnerManager : MonoBehaviour
             // Firebase DB의 "menuStatus/{코스이름}/isValidation" 경로에서 데이터를 가져옴
             DataSnapshot snapshot = await dbReference.Child("menuStatus").Child(courseKey).Child("isValidation").GetValueAsync();
 
-            // isValidation이 true이면 다음 단계로 진행
-            if (snapshot.Exists && (bool)snapshot.Value == true)
+            bool isAvailable = false;
+            if (snapshot.Exists && snapshot.Value != null)
+            {
+                // (bool)snapshot.Value 대신 Convert.ToBoolean()을 사용
+                isAvailable = Convert.ToBoolean(snapshot.Value);
+            }
+
+            if (isAvailable) // isAvailable이 true일 때 (주문 가능)
             {
                 // 메인 스레드에서 UI 및 OrderManager 작업 수행
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    statusText.text = "";
                     // OrderManager에 현재 코스를 추가하도록 요청
                     OrderManager.Instance.AddCourseToOrder(courseType);
                     // 메뉴 상세 설정 화면으로 이동
                     UIManager.Instance.ShowPanel("DinnerDetailPanel");
+                    isCheckingValidation = false; // 확인 완료, 플래그 해제
+
                 });
             }
             else
@@ -64,7 +83,8 @@ public class SelectDinnerManager : MonoBehaviour
                 // isValidation이 false이거나 데이터가 없음(품절)
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
-                    StartCoroutine(ShowTemporaryStatusMessage($"[ {courseKey} ] 메뉴는 품절되었습니다.", 2f));
+                    UIManager.Instance.ShowTemporaryStatus($"[ {courseKey} ] 메뉴는 품절되었습니다.", 2f);
+                    isCheckingValidation = false; // 확인 완료, 플래그 해제
                 });
             }
         }
@@ -73,16 +93,9 @@ public class SelectDinnerManager : MonoBehaviour
             Debug.LogError($"Firebase Validation Error: {ex.Message}");
             UnityMainThreadDispatcher.Instance().Enqueue(() =>
             {
-                StartCoroutine(ShowTemporaryStatusMessage("재고 확인 중 오류가 발생했습니다.", 2f));
+                UIManager.Instance.ShowTemporaryStatus("재고 확인 중 오류가 발생했습니다.", 2f);
+                isCheckingValidation = false; // 확인 완료, 플래그 해제
             });
         }
-    }
-
-    // 지정된 시간 후 메시지를 자동으로 지우는 코루틴
-    private IEnumerator ShowTemporaryStatusMessage(string message, float delay)
-    {
-        statusText.text = message;
-        yield return new WaitForSeconds(delay);
-        statusText.text = "";
     }
 }

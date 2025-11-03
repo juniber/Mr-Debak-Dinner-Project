@@ -2,9 +2,13 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using Firebase;
+using System.Collections;
 
 public class UIManager : MonoBehaviour
 {
+    // SelectDinnerPanel의 StatusText
+    public TMP_Text globalStatusText;
+
     // 1. 싱글톤 인스턴스 : UIManager를 어디서든 UIManager.Instance로 접근할 수 있게 해준다.
     public static UIManager Instance { get; private set; }
 
@@ -68,5 +72,24 @@ public class UIManager : MonoBehaviour
         {
             Debug.LogWarning($"패널을 찾을 수 없습니다: {panelName}");
         }
+    }
+
+    // UIManager가 대신 실행할 코루틴
+    private IEnumerator ShowTemporaryStatusMessageCoroutine(string message, float delay)
+    {
+        if (globalStatusText != null)
+        {
+            globalStatusText.text = message;
+            yield return new WaitForSeconds(delay);
+            globalStatusText.text = "";
+        }
+    }
+
+    // 다른 스크립트에서 이 함수를 호출
+    public void ShowTemporaryStatus(string message, float delay)
+    {
+        // 코루틴 실행 전에 기존 코루틴을 중지하여 메시지가 겹치지 않게 함
+        StopCoroutine("ShowTemporaryStatusMessageCoroutine");
+        StartCoroutine(ShowTemporaryStatusMessageCoroutine(message, delay));
     }
 }
