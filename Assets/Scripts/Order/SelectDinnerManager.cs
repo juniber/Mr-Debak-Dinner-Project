@@ -63,7 +63,7 @@ public class SelectDinnerManager : MonoBehaviour
             }
 
             // 2. 선택한 코스에 필요한 식재료 목록을 가져옴
-            Dictionary<string, long> requiredIngredients = GetCourseRequirements(courseType);
+            Dictionary<string, long> requiredIngredients = MenuData.GetCourseBaseRequirements(courseType);
 
             // 3. 재고가 충분한지 확인
             bool isAvailable = CheckStockIsAvailable(inventorySnapshot, requiredIngredients);
@@ -100,46 +100,6 @@ public class SelectDinnerManager : MonoBehaviour
                 isCheckingValidation = false; // 확인 완료, 플래그 해제
             });
         }
-    }
-
-    private Dictionary<string, long> GetCourseRequirements(CourseType courseType)
-    {
-        var requirements = new Dictionary<string, long>();
-
-        switch (courseType)
-        {
-            case CourseType.ValentineDinner:
-                requirements.Add(InventoryKeys.WineServings, 5); // 와인 1병 == 5잔
-                requirements.Add(InventoryKeys.SteakMeatG, 200);
-                break;
-
-            case CourseType.FrenchDinner:
-                requirements.Add(InventoryKeys.CoffeeServings, 1);
-                requirements.Add(InventoryKeys.WineServings, 1);
-                requirements.Add(InventoryKeys.SaladGreensG, 70);
-                requirements.Add(InventoryKeys.SteakMeatG, 200);
-                break;
-
-            case CourseType.EnglishDinner:
-                requirements.Add(InventoryKeys.EggsPcs, 2);
-                requirements.Add(InventoryKeys.BaconG, 18);
-                requirements.Add(InventoryKeys.BaguettePcs, 1);
-                requirements.Add(InventoryKeys.SteakMeatG, 200);
-                break;
-
-            case CourseType.ChampagneFeastDinner:
-                requirements.Add(InventoryKeys.ChampagneBottles, 1);
-                requirements.Add(InventoryKeys.BaguettePcs, 4);
-                requirements.Add(InventoryKeys.CoffeeServings, 4); // 커피 1 포트 == 4잔
-                requirements.Add(InventoryKeys.WineServings, 5);
-                requirements.Add(InventoryKeys.SteakMeatG, 400);
-                break;
-
-            default:
-                break;
-        }
-
-        return requirements;
     }
 
     // 현재 재고의 필요 식재료를 비교하여 주문 가능 여부를 반환
