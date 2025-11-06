@@ -1,6 +1,21 @@
 using System;
 using System.Collections.Generic;
 
+// Firebase DB의 재고(inventory) 키 이름들을 상수로 관리
+public static class InventoryKeys
+{
+    public const string SteakMeatG = "steakMeat_g";
+    public const string MiniCornPcs = "miniCorn_pcs";
+    public const string PotatoSaladG = "potatoSalad_g";
+    public const string SaladGreensG = "saladGreens_g";
+    public const string EggsPcs = "eggs_pcs";
+    public const string BaconG = "bacon_g";
+    public const string BaguettePcs = "baguette_pcs";
+    public const string WineServings = "wine_servings";
+    public const string CoffeeServings = "coffee_servings";
+    public const string ChampagneBottles = "champagne_bottles";
+}
+
 // 주문할 수 있는 코스의 종류
 public enum CourseType
 {
