@@ -13,7 +13,7 @@ public class AddonToggleLinker : MonoBehaviour
 
     // 이 스크립트의 Toggle 컴포넌트에 안전하게 접근
     public Toggle Toggle
-    {
+    { 
         get
         {
             if (_toggle == null)

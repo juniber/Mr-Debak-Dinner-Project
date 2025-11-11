@@ -406,6 +406,8 @@ public class DinnerDetailManager : MonoBehaviour
         simpleToggle.isOn = true;
         grandToggle.isOn = false;
         deluxeToggle.isOn = false;
+        // Simple 스타일 설명 즉시 표시
+        OnStyleToggleChanged(true, StyleType.Simple);
 
         // '추가' 토글들도 모두 끔 (자동화된 루프)
         foreach (var linker in addonToggles)

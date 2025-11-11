@@ -160,6 +160,9 @@ public class Order
 
     public List<CourseGroup> courseGroups;
 
+    // 가격 계산 로직은 PriceManager가 담당. 변수만 유지.
+    public long totalPrice;
+
     public Order(string userId)
     {
         this.userId = userId;
@@ -167,6 +170,7 @@ public class Order
         this.status = OrderStatus.Pending;
         this.courseGroups = new List<CourseGroup>();
         this.globalRequests = ""; // 초기화
+        this.totalPrice = 0;
     }
 
     // 새 코스를 주문에 추가하는 함수

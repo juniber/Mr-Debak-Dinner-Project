@@ -25,6 +25,19 @@ public class AppInitializer : MonoBehaviour
             }
         });
 
+        // PriceManager의 가격표 로딩
+        Debug.Log("가격표 로딩을 시작합니다...");
+        if (PriceManager.Instance != null)
+        {
+            await PriceManager.Instance.FetchPriceDataAsync();
+        }
+        else
+        {
+            Debug.LogError("PriceManager 인스턴스를 찾을 수 없습니다. InitScene에 PriceManager가 있나요?");
+            QuitApplication("필수 데이터를 로드하지 못했습니다.");
+            return;
+        }
+
         Debug.Log("모든 초기화 완료. MainScene으로 이동");
         SceneManager.LoadScene("Main");
     }
