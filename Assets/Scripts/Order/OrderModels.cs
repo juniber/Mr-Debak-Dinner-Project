@@ -26,12 +26,13 @@ public static class AddonKeys
     public const string AddPotatoSalad180g = "AddPotatoSalad180g";
     public const string AddSalad70g = "AddSalad70g";
     public const string AddBacon18g = "AddBacon18g";
+    public const string AddScrambledEggs = "AddScrambledEggs";
     public const string AddBaguette3P = "AddBaguette3P";
     public const string AddBaguette6P = "AddBaguette6P";
     public const string AddWineGlass = "AddWineGlass";
     public const string AddWineBottle = "AddWineBottle";
     public const string AddCoffeeGlass = "AddCoffeeGlass";
-    public const string AddCoffeePot = "AddCoffeePot";
+    public const string AddCoffeePot = "AddCoffeePot"; 
     public const string AddChampagneBottle = "AddChampagneBottle";
 
     // 제외 항목 키

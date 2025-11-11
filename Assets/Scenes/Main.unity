@@ -629,9 +629,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1555}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &72925253
@@ -1104,6 +1104,7 @@ GameObject:
   m_Component:
   - component: {fileID: 105038707}
   - component: {fileID: 105038708}
+  - component: {fileID: 105038709}
   m_Layer: 5
   m_Name: RemoveCoffee
   m_TagString: Untagged
@@ -1180,6 +1181,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &105038709
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 105038706}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveCoffee
+  toggle: {fileID: 0}
 --- !u!1 &121284662
 GameObject:
   m_ObjectHideFlags: 0
@@ -1934,6 +1949,7 @@ GameObject:
   m_Component:
   - component: {fileID: 208726357}
   - component: {fileID: 208726358}
+  - component: {fileID: 208726359}
   m_Layer: 5
   m_Name: AddCoffeeGlassToggle
   m_TagString: Untagged
@@ -1957,9 +1973,9 @@ RectTransform:
   - {fileID: 438693967}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1290}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &208726358
@@ -2010,6 +2026,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &208726359
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 208726356}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddCoffeeGlass
+  toggle: {fileID: 0}
 --- !u!1 &217399110
 GameObject:
   m_ObjectHideFlags: 0
@@ -2121,9 +2151,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1025}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &218251546
@@ -2257,9 +2287,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1991474700}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 562.0498, y: -358.0332}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &228076978
@@ -2371,6 +2401,7 @@ GameObject:
   m_Component:
   - component: {fileID: 239233028}
   - component: {fileID: 239233029}
+  - component: {fileID: 239233030}
   m_Layer: 5
   m_Name: RemoveScrambledeggs
   m_TagString: Untagged
@@ -2447,6 +2478,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &239233030
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 239233027}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveEggs
+  toggle: {fileID: 0}
 --- !u!1 &239617804
 GameObject:
   m_ObjectHideFlags: 0
@@ -2480,9 +2525,9 @@ RectTransform:
   - {fileID: 1945051767}
   m_Father: {fileID: 952941843}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 355, y: -50}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &239617806
@@ -2618,6 +2663,7 @@ GameObject:
   m_Component:
   - component: {fileID: 285737768}
   - component: {fileID: 285737769}
+  - component: {fileID: 285737770}
   m_Layer: 5
   m_Name: AddSteak80gToggle
   m_TagString: Untagged
@@ -2641,9 +2687,9 @@ RectTransform:
   - {fileID: 1377280333}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -140}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &285737769
@@ -2694,6 +2740,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &285737770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 285737767}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddSteak80g
+  toggle: {fileID: 0}
 --- !u!1 &287944772
 GameObject:
   m_ObjectHideFlags: 0
@@ -2780,6 +2840,7 @@ GameObject:
   m_Component:
   - component: {fileID: 300977078}
   - component: {fileID: 300977079}
+  - component: {fileID: 300977080}
   m_Layer: 5
   m_Name: RemoveWine
   m_TagString: Untagged
@@ -2855,7 +2916,21 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
+--- !u!114 &300977080
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300977077}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveWine
+  toggle: {fileID: 0}
 --- !u!1 &301051808
 GameObject:
   m_ObjectHideFlags: 0
@@ -3419,9 +3494,9 @@ RectTransform:
   - {fileID: 549281341}
   m_Father: {fileID: 1987069426}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 562.0498, y: -1095}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 900, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &422298303
@@ -3963,7 +4038,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &474467303
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3981,7 +4056,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 425, y: -840}
+  m_AnchoredPosition: {x: 425, y: -1640}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &474467305
@@ -4099,6 +4174,7 @@ GameObject:
   m_Component:
   - component: {fileID: 484127479}
   - component: {fileID: 484127480}
+  - component: {fileID: 484127481}
   m_Layer: 5
   m_Name: RemoveWine
   m_TagString: Untagged
@@ -4175,6 +4251,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &484127481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 484127478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveWine
+  toggle: {fileID: 0}
 --- !u!1 &490555226
 GameObject:
   m_ObjectHideFlags: 0
@@ -4208,9 +4298,9 @@ RectTransform:
   - {fileID: 1104749109}
   m_Father: {fileID: 1991474700}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 562.0498, y: -2015.166}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &490555228
@@ -5195,6 +5285,7 @@ GameObject:
   m_Component:
   - component: {fileID: 593180542}
   - component: {fileID: 593180543}
+  - component: {fileID: 593180544}
   m_Layer: 5
   m_Name: AddCoffeeBottleToggle
   m_TagString: Untagged
@@ -5218,9 +5309,9 @@ RectTransform:
   - {fileID: 384164957}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1380}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &593180543
@@ -5271,6 +5362,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &593180544
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593180541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddCoffeePot
+  toggle: {fileID: 0}
 --- !u!1 &609235685
 GameObject:
   m_ObjectHideFlags: 0
@@ -5615,7 +5720,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 2510}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &620917315
 MonoBehaviour:
@@ -6132,9 +6237,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1991474700}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 562.0498, y: -774.0996}
   m_SizeDelta: {x: 850, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &745233950
@@ -6270,9 +6375,9 @@ RectTransform:
   - {fileID: 1799990773}
   m_Father: {fileID: 1987069426}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 562.0498, y: -875}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 900, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &749777932
@@ -7289,9 +7394,9 @@ RectTransform:
   - {fileID: 79570978}
   m_Father: {fileID: 952941843}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 45, y: -50}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &806307209
@@ -7352,6 +7457,7 @@ GameObject:
   m_Component:
   - component: {fileID: 815589238}
   - component: {fileID: 815589239}
+  - component: {fileID: 815589240}
   m_Layer: 5
   m_Name: AddBaconToggle
   m_TagString: Untagged
@@ -7375,9 +7481,9 @@ RectTransform:
   - {fileID: 121284663}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -760}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &815589239
@@ -7428,6 +7534,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &815589240
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 815589237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddBacon18g
+  toggle: {fileID: 0}
 --- !u!1 &817454647
 GameObject:
   m_ObjectHideFlags: 0
@@ -7538,9 +7658,9 @@ RectTransform:
   - {fileID: 1313120594}
   m_Father: {fileID: 490555227}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -125, y: -50}
   m_SizeDelta: {x: 250, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &842525064
@@ -8655,6 +8775,7 @@ GameObject:
   m_Component:
   - component: {fileID: 896238925}
   - component: {fileID: 896238926}
+  - component: {fileID: 896238927}
   m_Layer: 5
   m_Name: RemoveWine
   m_TagString: Untagged
@@ -8731,6 +8852,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &896238927
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896238924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveWine
+  toggle: {fileID: 0}
 --- !u!1 &898318703
 GameObject:
   m_ObjectHideFlags: 0
@@ -9052,9 +9187,9 @@ RectTransform:
   - {fileID: 754135063}
   m_Father: {fileID: 1987069426}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 562.0498, y: -1320}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 450, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &929030763
@@ -9563,9 +9698,9 @@ RectTransform:
   - {fileID: 239617805}
   m_Father: {fileID: 1991474700}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 562.0498, y: -516.0664}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &952941844
@@ -10192,6 +10327,7 @@ GameObject:
   m_Component:
   - component: {fileID: 988702763}
   - component: {fileID: 988702764}
+  - component: {fileID: 988702765}
   m_Layer: 5
   m_Name: RemoveBacon
   m_TagString: Untagged
@@ -10268,6 +10404,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &988702765
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 988702762}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveBacon
+  toggle: {fileID: 0}
 --- !u!1 &998164549
 GameObject:
   m_ObjectHideFlags: 0
@@ -10278,6 +10428,7 @@ GameObject:
   m_Component:
   - component: {fileID: 998164550}
   - component: {fileID: 998164551}
+  - component: {fileID: 998164552}
   m_Layer: 5
   m_Name: AddWineGlassToggle
   m_TagString: Untagged
@@ -10301,9 +10452,9 @@ RectTransform:
   - {fileID: 2126892585}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1110}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &998164551
@@ -10354,6 +10505,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &998164552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 998164549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddWineGlass
+  toggle: {fileID: 0}
 --- !u!1 &1031430808
 GameObject:
   m_ObjectHideFlags: 0
@@ -10540,9 +10705,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -495}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1036081160
@@ -10970,9 +11135,9 @@ RectTransform:
   - {fileID: 2105075395}
   m_Father: {fileID: 952941843}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: -265, y: -50}
   m_SizeDelta: {x: 160, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1057091067
@@ -11813,9 +11978,9 @@ RectTransform:
   - {fileID: 2043332789}
   m_Father: {fileID: 490555227}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 225, y: -50}
   m_SizeDelta: {x: 250, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1104749110
@@ -13242,6 +13407,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1224470873}
   - component: {fileID: 1224470874}
+  - component: {fileID: 1224470875}
   m_Layer: 5
   m_Name: AddSteak160gToggle
   m_TagString: Untagged
@@ -13265,9 +13431,9 @@ RectTransform:
   - {fileID: 1343283466}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -230}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1224470874
@@ -13318,6 +13484,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1224470875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1224470872}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddSteak160g
+  toggle: {fileID: 0}
 --- !u!1 &1224715781
 GameObject:
   m_ObjectHideFlags: 0
@@ -13334,7 +13514,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1224715782
 RectTransform:
   m_ObjectHideFlags: 0
@@ -13354,7 +13534,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 425, y: -935}
+  m_AnchoredPosition: {x: 425, y: -1825}
   m_SizeDelta: {x: 750, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1224715783
@@ -14169,9 +14349,9 @@ RectTransform:
   - {fileID: 1297715218}
   m_Father: {fileID: 1991474700}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 562.0498, y: -1432.1328}
   m_SizeDelta: {x: 850, y: 900}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1291777427
@@ -15286,7 +15466,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1329557880
 RectTransform:
   m_ObjectHideFlags: 0
@@ -15306,7 +15486,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 425, y: -765}
+  m_AnchoredPosition: {x: 425, y: -2385}
   m_SizeDelta: {x: 750, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1329557881
@@ -15420,6 +15600,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1336170648}
   - component: {fileID: 1336170649}
+  - component: {fileID: 1336170650}
   m_Layer: 5
   m_Name: RemoveSalad
   m_TagString: Untagged
@@ -15496,6 +15677,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1336170650
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336170647}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveSalad
+  toggle: {fileID: 0}
 --- !u!1 &1343283465
 GameObject:
   m_ObjectHideFlags: 0
@@ -16692,7 +16887,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1444953371
 RectTransform:
   m_ObjectHideFlags: 0
@@ -16712,7 +16907,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 425, y: -765}
+  m_AnchoredPosition: {x: 425, y: -2105}
   m_SizeDelta: {x: 750, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1444953372
@@ -17308,6 +17503,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1522269884}
   - component: {fileID: 1522269885}
+  - component: {fileID: 1522269886}
   m_Layer: 5
   m_Name: AddMiniCorn2PToggle
   m_TagString: Untagged
@@ -17331,9 +17527,9 @@ RectTransform:
   - {fileID: 1930372545}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -320}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1522269885
@@ -17384,6 +17580,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1522269886
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1522269883}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddMiniCorn2P
+  toggle: {fileID: 0}
 --- !u!1 &1526038915
 GameObject:
   m_ObjectHideFlags: 0
@@ -17554,9 +17764,9 @@ RectTransform:
   - {fileID: 2087319701}
   m_Father: {fileID: 1987069426}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 562.0498, y: -1550}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 450, y: 160}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1542705070
@@ -18031,6 +18241,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1568395643}
   - component: {fileID: 1568395644}
+  - component: {fileID: 1568395645}
   m_Layer: 5
   m_Name: AddBaguetteBread3PToggle
   m_TagString: Untagged
@@ -18054,9 +18265,9 @@ RectTransform:
   - {fileID: 1137912091}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -850}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1568395644
@@ -18107,6 +18318,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1568395645
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1568395642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddBaguette3P
+  toggle: {fileID: 0}
 --- !u!1 &1594578265
 GameObject:
   m_ObjectHideFlags: 0
@@ -18323,6 +18548,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1635091468}
   - component: {fileID: 1635091469}
+  - component: {fileID: 1635091470}
   m_Layer: 5
   m_Name: AddSaladToggle
   m_TagString: Untagged
@@ -18346,9 +18572,9 @@ RectTransform:
   - {fileID: 1031645670}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -580}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1635091469
@@ -18399,6 +18625,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1635091470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1635091467}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddSalad70g
+  toggle: {fileID: 0}
 --- !u!1 &1639907487
 GameObject:
   m_ObjectHideFlags: 0
@@ -18484,6 +18724,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1645719229}
   - component: {fileID: 1645719230}
+  - component: {fileID: 1645719231}
   m_Layer: 5
   m_Name: AddScrambledeggsToggle
   m_TagString: Untagged
@@ -18507,9 +18748,9 @@ RectTransform:
   - {fileID: 1647673929}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -670}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1645719230
@@ -18560,6 +18801,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1645719231
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1645719228}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddScrambledEggs
+  toggle: {fileID: 0}
 --- !u!1 &1646012160
 GameObject:
   m_ObjectHideFlags: 0
@@ -18707,6 +18962,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1647115629}
   - component: {fileID: 1647115630}
+  - component: {fileID: 1647115631}
   m_Layer: 5
   m_Name: AddChampagneBottleToggle
   m_TagString: Untagged
@@ -18730,9 +18986,9 @@ RectTransform:
   - {fileID: 1872272965}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1470}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1647115630
@@ -18783,6 +19039,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1647115631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1647115628}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddChampagneBottle
+  toggle: {fileID: 0}
 --- !u!1 &1647673928
 GameObject:
   m_ObjectHideFlags: 0
@@ -19905,6 +20175,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1729356443}
   - component: {fileID: 1729356444}
+  - component: {fileID: 1729356445}
   m_Layer: 5
   m_Name: RemoveCoffee
   m_TagString: Untagged
@@ -19981,6 +20252,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1729356445
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729356442}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveCoffee
+  toggle: {fileID: 0}
 --- !u!1 &1735310107
 GameObject:
   m_ObjectHideFlags: 0
@@ -22028,6 +22313,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1890553342}
   - component: {fileID: 1890553343}
+  - component: {fileID: 1890553344}
   m_Layer: 5
   m_Name: RemoveBaguetteBread
   m_TagString: Untagged
@@ -22104,6 +22390,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1890553344
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1890553341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveBaguette
+  toggle: {fileID: 0}
 --- !u!1 &1901243535
 GameObject:
   m_ObjectHideFlags: 0
@@ -23070,9 +23370,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1991474700}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 562.0498, y: -225}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1975129244
@@ -23269,7 +23569,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1987069426
 RectTransform:
   m_ObjectHideFlags: 0
@@ -23384,6 +23684,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1988147426}
   - component: {fileID: 1988147427}
+  - component: {fileID: 1988147428}
   m_Layer: 5
   m_Name: AddPotatoSaladToggle
   m_TagString: Untagged
@@ -23407,9 +23708,9 @@ RectTransform:
   - {fileID: 197253481}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -410}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1988147427
@@ -23460,6 +23761,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &1988147428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1988147425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddPotatoSalad180g
+  toggle: {fileID: 0}
 --- !u!1 &1988546708
 GameObject:
   m_ObjectHideFlags: 0
@@ -23548,13 +23863,14 @@ GameObject:
   - component: {fileID: 1991474702}
   - component: {fileID: 1991474701}
   - component: {fileID: 1991474703}
+  - component: {fileID: 1991474704}
   m_Layer: 5
   m_Name: DinnerDetailPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1991474700
 RectTransform:
   m_ObjectHideFlags: 0
@@ -23644,6 +23960,29 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1991474704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1991474699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35435306fe5145843b342cd7b5c70bb6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DinnerDetailManager
+  simpleToggle: {fileID: 1057091067}
+  grandToggle: {fileID: 806307209}
+  deluxeToggle: {fileID: 239617806}
+  styleDescriptionText: {fileID: 745233950}
+  addonContainer: {fileID: 620917314}
+  valentineRemoveGroup: {fileID: 474467302}
+  frenchRemoveGroup: {fileID: 1224715781}
+  englishRemoveGroup: {fileID: 1444953370}
+  champagneRemoveGroup: {fileID: 1329557879}
+  addCourseButton: {fileID: 842525064}
+  confirmOrderButton: {fileID: 1104749110}
 --- !u!1 &1993928508
 GameObject:
   m_ObjectHideFlags: 0
@@ -24581,9 +24920,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -55}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2064750812
@@ -25495,6 +25834,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2109193562}
   - component: {fileID: 2109193563}
+  - component: {fileID: 2109193564}
   m_Layer: 5
   m_Name: AddWineBottleToggle
   m_TagString: Untagged
@@ -25518,9 +25858,9 @@ RectTransform:
   - {fileID: 962780949}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -1200}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2109193563
@@ -25571,6 +25911,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &2109193564
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2109193561}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddWineBottle
+  toggle: {fileID: 0}
 --- !u!1 &2116442910
 GameObject:
   m_ObjectHideFlags: 0
@@ -25842,6 +26196,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2125774593}
   - component: {fileID: 2125774594}
+  - component: {fileID: 2125774595}
   m_Layer: 5
   m_Name: AddBaguetteBread6PToggle
   m_TagString: Untagged
@@ -25865,9 +26220,9 @@ RectTransform:
   - {fileID: 217399111}
   m_Father: {fileID: 620917314}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 425, y: -940}
   m_SizeDelta: {x: 750, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2125774594
@@ -25918,6 +26273,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &2125774595
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2125774592}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: AddBaguette6P
+  toggle: {fileID: 0}
 --- !u!1 &2126556057
 GameObject:
   m_ObjectHideFlags: 0
@@ -26082,6 +26451,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2146025520}
   - component: {fileID: 2146025521}
+  - component: {fileID: 2146025522}
   m_Layer: 5
   m_Name: RemoveBaguetteBread
   m_TagString: Untagged
@@ -26158,6 +26528,20 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 0
+--- !u!114 &2146025522
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2146025519}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21f2919aea833c44dbb9b27ac5d09677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AddonToggleLinker
+  addonKey: RemoveBaguette
+  toggle: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

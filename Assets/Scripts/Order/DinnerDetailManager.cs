@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TMPro;
+using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,7 @@ public class DinnerDetailManager : MonoBehaviour
     public TMP_Text styleDescriptionText;
 
     // '추가' 토글들이 들어있는 부모 오브젝트 (예: 'Content')
-    [Header("Option Containers")]
+    [Header("Option Containers")] 
     public Transform addonContainer;
     public GameObject valentineRemoveGroup;
     public GameObject frenchRemoveGroup;
@@ -34,9 +35,18 @@ public class DinnerDetailManager : MonoBehaviour
     // 찾은 토글들을 저장할 리스트와 딕셔너리
     private List<AddonToggleLinker> addonToggles = new List<AddonToggleLinker>();
     private Dictionary<CourseType, List<AddonToggleLinker>> removeTogglesMap = new Dictionary<CourseType, List<AddonToggleLinker>>();
-
     // '추가' 항목의 재고 소모량을 정의하는 딕셔너리 (중앙 관리)
     private Dictionary<string, AddonInventoryInfo> addonInventoryCosts;
+
+    // '제외' 키와 충돌하는 '추가' 키들의 맵
+    // Key: RemoveKey (예: "RemoveWine"), Value: List of conflicting AddKeys (예: ["AddWineGlass", "AddWineBottle"])
+    private Dictionary<string, List<string>> conflictMap;
+    // '추가' 키가 어떤 '제외' 키와 충돌하는지 반대로 찾는 맵 (빠른 검색용)
+    // Key: AddKey (예: "AddWineGlass"), Value: Conflicting RemoveKey (예: "RemoveWine")
+    private Dictionary<string, string> reverseConflictMap;
+
+    // DB에서 가져온 재고 스냅샷 (캐시)
+    private DataSnapshot inventorySnapshot;
 
     // 재고 소모량 정의를 위한 작은 헬퍼 클래스
     private class AddonInventoryInfo
@@ -46,29 +56,42 @@ public class DinnerDetailManager : MonoBehaviour
         public AddonInventoryInfo(string key, long amount) { InventoryKey = key; Amount = amount; }
     }
 
-    void Start()
+    void Awake()
     {
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
 
         // 1. '추가' 항목 재고 소모량 맵 초기화
         InitializeInventoryCostMap();
 
-        // 2. '추가' 토글들 자동 스캔
+        // 2. (신규) 충돌 맵 초기화
+        InitializeConflictMap();
+
+        // 3. '추가' 토글들 자동 스캔
         // addonContainer의 모든 자식(비활성화 포함)에서 AddonToggleLinker를 찾아 리스트에 추가
         addonContainer.GetComponentsInChildren<AddonToggleLinker>(true, addonToggles);
 
-        // 3. '제외' 토글들 자동 스캔 및 맵핑
+        // 4. '제외' 토글들 자동 스캔 및 맵핑
         removeTogglesMap[CourseType.ValentineDinner] = valentineRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
         removeTogglesMap[CourseType.FrenchDinner] = frenchRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
         removeTogglesMap[CourseType.EnglishDinner] = englishRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
         removeTogglesMap[CourseType.ChampagneFeastDinner] = champagneRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
 
-        // 4. 스타일 토글 리스너 연결
+        // 5. 모든 '제외' 토글에 리스너(이벤트)를 추가
+        foreach (var toggleList in removeTogglesMap.Values)
+        {
+            foreach (var linker in toggleList)
+            {
+                // '제외' 토글의 값이 변경되면, '추가' 토글들의 재고를 다시 계산
+                linker.Toggle.onValueChanged.AddListener(OnRemoveToggleChanged);
+            }
+        }
+
+        // 6. 스타일 토글 리스너 연결
         simpleToggle.onValueChanged.AddListener((isOn) => OnStyleToggleChanged(isOn, StyleType.Simple));
         grandToggle.onValueChanged.AddListener((isOn) => OnStyleToggleChanged(isOn, StyleType.Grand));
         deluxeToggle.onValueChanged.AddListener((isOn) => OnStyleToggleChanged(isOn, StyleType.Deluxe));
 
-        // 5. 하단 버튼 리스너 연결
+        // 7. 하단 버튼 리스너 연결
         addCourseButton.onClick.AddListener(OnAddCourseClicked);
         confirmOrderButton.onClick.AddListener(OnConfirmOrderClicked);
     }
@@ -82,8 +105,9 @@ public class DinnerDetailManager : MonoBehaviour
             { AddonKeys.AddSteak160g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 160) },
             { AddonKeys.AddMiniCorn2P, new AddonInventoryInfo(InventoryKeys.MiniCornPcs, 2) },
             { AddonKeys.AddPotatoSalad180g, new AddonInventoryInfo(InventoryKeys.PotatoSaladG, 180) },
-            { AddonKeys.AddSalad70g, new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70) },
+            { AddonKeys.AddSalad70g, new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70) }, 
             { AddonKeys.AddBacon18g, new AddonInventoryInfo(InventoryKeys.BaconG, 18) },
+            { AddonKeys.AddScrambledEggs, new AddonInventoryInfo(InventoryKeys.EggsPcs, 1) },
             { AddonKeys.AddBaguette3P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 3) },
             { AddonKeys.AddBaguette6P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 6) },
             { AddonKeys.AddWineGlass, new AddonInventoryInfo(InventoryKeys.WineServings, 1) },
@@ -92,6 +116,178 @@ public class DinnerDetailManager : MonoBehaviour
             { AddonKeys.AddCoffeePot, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4) },
             { AddonKeys.AddChampagneBottle, new AddonInventoryInfo(InventoryKeys.ChampagneBottles, 1) }
         };
+    }
+
+    // '추가'와 '제외' 토글 간의 충돌 맵
+    private void InitializeConflictMap()
+    {
+        // 1. 정방향 맵 (RemoveKey -> AddKeys)
+        conflictMap = new Dictionary<string, List<string>>
+        {
+            { AddonKeys.RemoveWine, new List<string> { AddonKeys.AddWineGlass, AddonKeys.AddWineBottle } },
+            { AddonKeys.RemoveCoffee, new List<string> { AddonKeys.AddCoffeeGlass, AddonKeys.AddCoffeePot } },
+            { AddonKeys.RemoveSalad, new List<string> { AddonKeys.AddSalad70g } },
+            { AddonKeys.RemoveEggs, new List<string> { AddonKeys.AddScrambledEggs } },
+            { AddonKeys.RemoveBacon, new List<string> { AddonKeys.AddBacon18g } },
+            { AddonKeys.RemoveBaguette, new List<string> { AddonKeys.AddBaguette3P, AddonKeys.AddBaguette6P } }
+        };
+
+        // 2. 역방향 맵 (AddKey -> RemoveKey) (빠른 검색용)
+        reverseConflictMap = new Dictionary<string, string>();
+        foreach (var entry in conflictMap)
+        {
+            string removeKey = entry.Key;
+            foreach (string addKey in entry.Value)
+            {
+                reverseConflictMap[addKey] = removeKey;
+            }
+        }
+    }
+
+    // 제외' 토글이 클릭되면 호출되는 이벤트 함수
+    private void OnRemoveToggleChanged(bool isOn)
+    {
+        // DB에서 새 데이터를 가져오지 않고, 캐시된 스냅샷으로 재고를 다시 계산
+        UpdateAddonInteractability();
+    }
+
+    // 캐시된 재고 데이터를 기준으로 '추가' 토글의 활성화/비활성화를 업데이트
+    private void UpdateAddonInteractability()
+    {
+        if (inventorySnapshot == null) return; // 재고 데이터가 아직 로드되지 않음
+
+        // 1. 현재 코스의 기본 소모량
+        var baseRequirements = MenuData.GetCourseBaseRequirements(currentCourseType);
+
+        // 2. '이전 코스들'의 총 소모량 (제외 항목 포함)
+        var committedCost = GetCommittedCost();
+
+        // 3. '현재 코스'의 '제외' 토글로 인한 환불량
+        var currentRefunds = GetCurrentRefunds();
+
+        // 현재 켜져 있는 '제외' 토글 키 목록을 가져옴 (충돌 검사용)
+        var activeRemoveKeys = GetCurrentActiveRemoveKeys();
+
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            foreach (var linker in addonToggles)
+            {
+                bool isStockAvailable = true; // 재고 있음으로 가정
+                bool isConflicted = false;    // 충돌 없음으로 가정
+
+                // 1. 충돌 검사
+                // 이 '추가' 토글(linker.addonKey)이 충돌 맵에 등록되어 있는지 확인
+                if (reverseConflictMap.TryGetValue(linker.addonKey, out string conflictingRemoveKey))
+                {
+                    // 충돌하는 '제외' 토글이 현재 활성화(켜져) 있는지 확인
+                    if (activeRemoveKeys.Contains(conflictingRemoveKey))
+                    {
+                        isConflicted = true;
+                    }
+                }
+
+                // 2. 재고 검사 (충돌하지 않았을 경우에만)
+                if (!isConflicted)
+                {
+                    if (addonInventoryCosts.TryGetValue(linker.addonKey, out AddonInventoryInfo cost))
+                    {
+                        // 재고 확인 로직을 헬퍼 함수에서 여기로 가져옴
+                        long baseAmount = baseRequirements.TryGetValue(cost.InventoryKey, out var b) ? b : 0;
+                        long committedAmount = committedCost.TryGetValue(cost.InventoryKey, out var c) ? c : 0;
+                        long refundAmount = currentRefunds.TryGetValue(cost.InventoryKey, out var r) ? r : 0;
+                        long currentStock = Convert.ToInt64(inventorySnapshot.Child(cost.InventoryKey).Value);
+
+                        long totalDemand = (committedAmount + baseAmount + cost.Amount) - refundAmount;
+                        isStockAvailable = (currentStock >= totalDemand);
+                    }
+                }
+
+                // 3. 최종 결정
+                bool canInteract = (isStockAvailable && !isConflicted);
+                linker.Toggle.interactable = canInteract;
+
+                // 비활성화되면, 체크(isOn)도 강제로 해제
+                if (!canInteract)
+                {
+                    linker.Toggle.isOn = false;
+                }
+            }
+        });
+    }
+
+    // '현재 패널'에서 체크된 '제외' 토글의 AddonKey 목록을 반환
+    private HashSet<string> GetCurrentActiveRemoveKeys()
+    {
+        var activeKeys = new HashSet<string>();
+        if (removeTogglesMap.ContainsKey(currentCourseType))
+        {
+            foreach (var linker in removeTogglesMap[currentCourseType])
+            {
+                if (linker.Toggle.isOn)
+                {
+                    activeKeys.Add(linker.addonKey);
+                }
+            }
+        }
+        return activeKeys;
+    }
+
+    // '현재 패널'에서 체크된 '제외' 토글의 총 환불량을 계산
+    private Dictionary<string, long> GetCurrentRefunds()
+    {
+        var refunds = new Dictionary<string, long>();
+        if (!removeTogglesMap.ContainsKey(currentCourseType))
+        {
+            return refunds;
+        }
+
+        // 현재 코스에 해당하는 '제외' 토글 리스트를 가져옴
+        var currentRemoveToggles = removeTogglesMap[currentCourseType];
+
+        foreach (var linker in currentRemoveToggles)
+        {
+            if (linker.Toggle.isOn) // '제외' 토글이 켜져있다면
+            {
+                AddonInventoryInfo refund = GetRefundInfo(currentCourseType, linker.addonKey);
+                if (refund != null)
+                {
+                    if (!refunds.ContainsKey(refund.InventoryKey)) refunds[refund.InventoryKey] = 0;
+                    refunds[refund.InventoryKey] += refund.Amount;
+                }
+            }
+        }
+        return refunds;
+    }
+
+    // '제외' 키(AddonKey)에 따라 환불되는 재료(InventoryKey)와 수량(Amount)을 반환
+    private AddonInventoryInfo GetRefundInfo(CourseType courseType, string removeKey)
+    {
+        // 코스별로 기본 제공량이 다르므로, 환불량도 다르다.
+        switch (courseType)
+        {
+            case CourseType.ValentineDinner:
+                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5); // 1병(5잔)
+                break;
+
+            case CourseType.FrenchDinner:
+                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1);
+                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 1);
+                if (removeKey == AddonKeys.RemoveSalad) return new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70);
+                break;
+
+            case CourseType.EnglishDinner:
+                if (removeKey == AddonKeys.RemoveEggs) return new AddonInventoryInfo(InventoryKeys.EggsPcs, 2);
+                if (removeKey == AddonKeys.RemoveBacon) return new AddonInventoryInfo(InventoryKeys.BaconG, 18);
+                if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 1);
+                break;
+
+            case CourseType.ChampagneFeastDinner:
+                if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 4);
+                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4); // 1포트(4잔)
+                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5); // 1병(5잔)
+                break;
+        }
+        return null; // 해당하는 환불 항목이 없음
     }
 
     // 스타일 토글 설명
@@ -155,7 +351,7 @@ public class DinnerDetailManager : MonoBehaviour
         currentCourseDetail.addedItems.Clear();
         foreach (var linker in addonToggles)
         {
-            if (linker.toggle.isOn)
+            if (linker.Toggle.isOn)
             {
                 currentCourseDetail.addedItems.Add(linker.addonKey);
             }
@@ -167,7 +363,7 @@ public class DinnerDetailManager : MonoBehaviour
         {
             foreach (var linker in removeTogglesMap[currentCourseType])
             {
-                if (linker.toggle.isOn)
+                if (linker.Toggle.isOn)
                 {
                     currentCourseDetail.removedItems.Add(linker.addonKey);
                 }
@@ -194,7 +390,7 @@ public class DinnerDetailManager : MonoBehaviour
 
         // 3. UI 초기화 및 재고 확인
         SetupPanelForCourse();
-        _ = CheckInventoryAndSetInteractable();
+        _ = RefreshInventoryData(); // 패널이 켜질 때 DB에서 재고를 한 번만 가져온다. 
     }
 
     // 패널 초기화
@@ -214,7 +410,7 @@ public class DinnerDetailManager : MonoBehaviour
         // '추가' 토글들도 모두 끔 (자동화된 루프)
         foreach (var linker in addonToggles)
         {
-            linker.toggle.isOn = false;
+            linker.Toggle.isOn = false;
         }
 
         // '제외' 토글들도 모두 끔 (자동화된 루프)
@@ -222,55 +418,33 @@ public class DinnerDetailManager : MonoBehaviour
         {
             foreach (var linker in removeTogglesMap[currentCourseType])
             {
-                linker.toggle.isOn = false;
+                linker.Toggle.isOn = false;
             }
         }
     }
 
-    // (비동기) Firebase에서 재고를 가져와 '추가' 토글들의 활성화 상태를 설정
-    private async Task CheckInventoryAndSetInteractable()
+    // (비동기) DB에서 최신 재고 스냅샷을 가져와 캐시하고, 토글 활성화 상태를 업데이트
+    private async Task RefreshInventoryData()
     {
         try
         {
-            DataSnapshot inventorySnapshot = await dbReference.Child("inventory").GetValueAsync();
+            inventorySnapshot = await dbReference.Child("inventory").GetValueAsync();
             if (!inventorySnapshot.Exists)
             {
                 Debug.LogError("재고(Inventory) 데이터를 찾을 수 없습니다.");
                 return;
             }
 
-            // 1. 현재 코스의 기본 소모량
-            var baseRequirements = MenuData.GetCourseBaseRequirements(currentCourseType);
-
-            // 2. '이전 코스들' (현재 편집 중인 코스 제외)의 총 소모량 계산
-            var committedCost = GetCommittedCost();
-
-            UnityMainThreadDispatcher.Instance().Enqueue(() =>
-            {
-                // '추가' 토글 전체를 순회하며 재고 확인
-                foreach (var linker in addonToggles)
-                {
-                    if (addonInventoryCosts.TryGetValue(linker.addonKey, out AddonInventoryInfo cost))
-                    {
-                        // 헬퍼 함수를 호출하여 재고 확인 및 interactable 설정
-                        SetToggleInteractable(linker.toggle, inventorySnapshot, 
-                            baseRequirements, committedCost, 
-                            cost.InventoryKey, cost.Amount);
-                    }
-                    else
-                    {
-                        linker.toggle.interactable = true; // 재고 비용이 없는 항목은 항상 활성화
-                    }
-                }
-            });
+            // 최신 재고 데이터를 기준으로 토글 활성화 상태 업데이트
+            UpdateAddonInteractability();
         }
         catch (Exception ex)
         {
-            Debug.LogError($"재고 확인 중 오류 발생: {ex.Message}");
+            Debug.LogError($"재고 확인 중 오류 발생: {ex}");
         }
     }
 
-    // (신규) 현재 편집 중인 코스를 '제외한' 장바구니의 모든 재료 소모량을 계산
+    // 현재 편집 중인 코스를 '제외한' 장바구니의 모든 재료 소모량을 계산
     private Dictionary<string, long> GetCommittedCost()
     {
         var committedCost = new Dictionary<string, long>();
@@ -313,46 +487,18 @@ public class DinnerDetailManager : MonoBehaviour
                     }
                 }
 
-                // TODO: '제외' 항목에 대한 재료 차감 로직 (나중에 추가 가능)
-                // 예: detail.removedItems을 순회하며 baseReqs에서 해당 재료 차감
+                // (이전 코스) 제외 재료로 인한 환불(차감)
+                foreach (string removedKey in detail.removedItems)
+                {
+                    AddonInventoryInfo refund = GetRefundInfo(type, removedKey);
+                    if (refund != null)
+                    {
+                        if (!committedCost.ContainsKey(refund.InventoryKey)) committedCost[refund.InventoryKey] = 0;
+                        committedCost[refund.InventoryKey] -= refund.Amount; // 재료 소모량에서 차감
+                    }
+                }
             }
         }
         return committedCost;
-    }
-
-    // (Helper) 재고 확인 로직을 처리하는 함수
-    private void SetToggleInteractable(Toggle toggle, DataSnapshot inventory, 
-                                       Dictionary<string, long> baseReq,      // 현재 코스 기본 소모량
-                                       Dictionary<string, long> committedReq, // 이전 코스들 총 소모량
-                                       string itemKey, long additionalAmount) // 이 토글의 추가 소모량
-    {
-        // 1. 현재 코스 기본 소모량 (itemKey에 해당하는)
-        long baseAmount = 0;
-        baseReq.TryGetValue(itemKey, out baseAmount);
-
-        // 2. 이전 코스들 총 소모량 (itemKey에 해당하는)
-        long committedAmount = 0;
-        committedReq.TryGetValue(itemKey, out committedAmount);
-
-        // 3. DB의 총 재고
-        long currentStock = 0;
-        if (inventory.Child(itemKey).Exists)
-        {
-            currentStock = Convert.ToInt64(inventory.Child(itemKey).Value);
-        }
-
-        // 4. 최종 수식: DB재고 >= 이전코스총합 + 현재코스기본 + 이토글추가량
-        bool isAvailable = (currentStock >= (committedAmount + baseAmount + additionalAmount));
-        toggle.interactable = isAvailable;
-
-        if (!isAvailable)
-        {
-            Debug.LogWarning($"재고 부족으로 [{toggle.name}] 비활성화: " +
-                          $"Key: {itemKey}, " +
-                          $"DB재고({currentStock}) < " +
-                          $"이전 코스({committedAmount}) + " +
-                          $"현재 코스({baseAmount}) + " +
-                          $"추가 옵션({additionalAmount})");
-        }
     }
 }

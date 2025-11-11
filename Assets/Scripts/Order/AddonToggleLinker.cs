@@ -9,12 +9,19 @@ public class AddonToggleLinker : MonoBehaviour
     [Header("이 토글이 대표하는 항목의 키 (AddonKeys 클래스와 일치)")]
     public string addonKey;
 
-    [HideInInspector] // Inspector에 노출할 필요 없는 public 변수
-    public Toggle toggle;
+    private Toggle _toggle; // 토글 컴포넌트를 저장할 비공개 변수
 
-    private void Awake()
+    // 이 스크립트의 Toggle 컴포넌트에 안전하게 접근
+    public Toggle Toggle
     {
-        // 자신의 Toggle 컴포넌트를 자동으로 찾아 변수에 할당
-        toggle = GetComponent<Toggle>();
+        get
+        {
+            if (_toggle == null)
+            {
+                // 지금 이 순간 자신의 게임 오브젝트에서 GetComponent를 실행
+                _toggle = GetComponent<Toggle>();
+            }
+            return _toggle;
+        }
     }
 }
