@@ -8,6 +8,8 @@ using Unity.VisualScripting.Antlr3.Runtime.Tree;
 using UnityEngine;
 using UnityEngine.UI;
 
+// 'DinnerDetailPanel'의 UI와 로직을 관리
+// 스타일 선택, 추가/제외 옵션 선택, 재고 및 가격 계산을 담당
 public class DinnerDetailManager : MonoBehaviour
 {
     [Header("Style UI")]
@@ -27,6 +29,9 @@ public class DinnerDetailManager : MonoBehaviour
     [Header("Navigation Buttons")]
     public Button addCourseButton;
     public Button confirmOrderButton;
+
+    [Header("Price Display")]
+    public TMP_Text totalPriceText; 
 
     private DatabaseReference dbReference;
     private CourseType currentCourseType;
@@ -60,29 +65,47 @@ public class DinnerDetailManager : MonoBehaviour
     {
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
 
-        // 1. '추가' 항목 재고 소모량 맵 초기화
+        // 1. '추가' 항목 재고 소모량 & 충돌 맵 초기화
         InitializeInventoryCostMap();
-
-        // 2. (신규) 충돌 맵 초기화
         InitializeConflictMap();
 
-        // 3. '추가' 토글들 자동 스캔
+        // 2. '추가' 토글들 자동 스캔
         // addonContainer의 모든 자식(비활성화 포함)에서 AddonToggleLinker를 찾아 리스트에 추가
         addonContainer.GetComponentsInChildren<AddonToggleLinker>(true, addonToggles);
 
-        // 4. '제외' 토글들 자동 스캔 및 맵핑
+        // 3. '제외' 토글들 자동 스캔 및 맵핑
         removeTogglesMap[CourseType.ValentineDinner] = valentineRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
         removeTogglesMap[CourseType.FrenchDinner] = frenchRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
         removeTogglesMap[CourseType.EnglishDinner] = englishRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
         removeTogglesMap[CourseType.ChampagneFeastDinner] = champagneRemoveGroup.GetComponentsInChildren<AddonToggleLinker>(true).ToList();
 
-        // 5. 모든 '제외' 토글에 리스너(이벤트)를 추가
+        // 4. 모든 '제외' 토글에 리스너(이벤트)를 추가
         foreach (var toggleList in removeTogglesMap.Values)
         {
             foreach (var linker in toggleList)
             {
-                // '제외' 토글의 값이 변경되면, '추가' 토글들의 재고를 다시 계산
-                linker.Toggle.onValueChanged.AddListener(OnRemoveToggleChanged);
+                if (linker.Toggle != null)
+                {
+                    // '제외' 토글의 값이 변경되면, '추가' 토글들의 재고를 다시 계산
+                    linker.Toggle.onValueChanged.AddListener(OnRemoveToggleChanged);
+                }
+                else
+                {
+                    Debug.LogError($"[Awake] {linker.gameObject.name}의 ToggleComponent가 null입니다.");
+                }
+            }
+        }
+
+        // 5. 모든 '추가' 토글에도 리스너를 추가 (가격 업데이트용)
+        foreach (var linker in addonToggles)
+        {
+            if (linker.Toggle != null)
+            {
+                linker.Toggle.onValueChanged.AddListener(OnAddonToggleChanged);
+            }
+            else
+            {
+                Debug.LogError($"[Awake] {linker.gameObject.name}의 ToggleComponent가 null입니다.");
             }
         }
 
@@ -147,8 +170,10 @@ public class DinnerDetailManager : MonoBehaviour
     // 제외' 토글이 클릭되면 호출되는 이벤트 함수
     private void OnRemoveToggleChanged(bool isOn)
     {
-        // DB에서 새 데이터를 가져오지 않고, 캐시된 스냅샷으로 재고를 다시 계산
+        // 재고와 '충돌' 상태를 다시 계산
         UpdateAddonInteractability();
+        // 가격을 다시 계산하고 표시
+        UpdateCurrentOrderPrice();
     }
 
     // 캐시된 재고 데이터를 기준으로 '추가' 토글의 활성화/비활성화를 업데이트
@@ -158,13 +183,10 @@ public class DinnerDetailManager : MonoBehaviour
 
         // 1. 현재 코스의 기본 소모량
         var baseRequirements = MenuData.GetCourseBaseRequirements(currentCourseType);
-
         // 2. '이전 코스들'의 총 소모량 (제외 항목 포함)
         var committedCost = GetCommittedCost();
-
         // 3. '현재 코스'의 '제외' 토글로 인한 환불량
         var currentRefunds = GetCurrentRefunds();
-
         // 현재 켜져 있는 '제외' 토글 키 목록을 가져옴 (충돌 검사용)
         var activeRemoveKeys = GetCurrentActiveRemoveKeys();
 
@@ -176,7 +198,6 @@ public class DinnerDetailManager : MonoBehaviour
                 bool isConflicted = false;    // 충돌 없음으로 가정
 
                 // 1. 충돌 검사
-                // 이 '추가' 토글(linker.addonKey)이 충돌 맵에 등록되어 있는지 확인
                 if (reverseConflictMap.TryGetValue(linker.addonKey, out string conflictingRemoveKey))
                 {
                     // 충돌하는 '제외' 토글이 현재 활성화(켜져) 있는지 확인
@@ -191,7 +212,7 @@ public class DinnerDetailManager : MonoBehaviour
                 {
                     if (addonInventoryCosts.TryGetValue(linker.addonKey, out AddonInventoryInfo cost))
                     {
-                        // 재고 확인 로직을 헬퍼 함수에서 여기로 가져옴
+                        // 재고 확인
                         long baseAmount = baseRequirements.TryGetValue(cost.InventoryKey, out var b) ? b : 0;
                         long committedAmount = committedCost.TryGetValue(cost.InventoryKey, out var c) ? c : 0;
                         long refundAmount = currentRefunds.TryGetValue(cost.InventoryKey, out var r) ? r : 0;
@@ -290,6 +311,33 @@ public class DinnerDetailManager : MonoBehaviour
         return null; // 해당하는 환불 항목이 없음
     }
 
+    //'추가' 토글이 클릭되면 호출되는 이벤트 함수
+    private void OnAddonToggleChanged(bool isOn)
+    {
+        // 가격을 다시 계산하고 표시
+        UpdateCurrentOrderPrice();
+    }
+
+    // 현재 UI의 모든 선택사항을 Order 객체에 저장하고, Order의 총 가격을 계산한 뒤, UI에 표시
+    private void UpdateCurrentOrderPrice()
+    {
+        // 1. 현재 UI의 선택사항을 Order 객체에 임시 저장
+        SaveCurrentSelectionsToOrder();
+
+        // 2. PriceManager를 통해 Order 객체의 총 가격 계산
+        if (PriceManager.Instance != null && OrderManager.Instance.CurrentOrder != null)
+        {
+            PriceManager.Instance.CalculateTotalPrice(OrderManager.Instance.CurrentOrder);
+
+            // 3. UI 텍스트에 가격 표시 (예: "총 45,000원")
+            long total = OrderManager.Instance.CurrentOrder.totalPrice;
+            if (totalPriceText != null)
+            {
+                totalPriceText.text = $"현재 총 주문액: {total:N0}원"; // N0 포맷은 천 단위 콤마(,)를 추가
+            }
+        } 
+    }
+
     // 스타일 토글 설명
     private void OnStyleToggleChanged(bool isOn, StyleType style)
     {
@@ -307,6 +355,9 @@ public class DinnerDetailManager : MonoBehaviour
                 styleDescriptionText.text = "꽃들이 있는 작은 꽃병, 도자기 접시와 도자기 컵, 린넨 냅킨이 나무 쟁반에 제공되고, 와인이 포함되면 잔은 유리 잔 제공";
                 break;
         }
+
+        // 가격 업데이트
+        UpdateCurrentOrderPrice();
     }
 
     // "코스 추가하기" 버튼 클릭
@@ -374,6 +425,9 @@ public class DinnerDetailManager : MonoBehaviour
     // 패널이 활성화될 때마다 호출
     private void OnEnable()
     {
+        // 씬 로드 시 첫 활성화 방지
+        if (OrderManager.Instance == null || OrderManager.Instance.CurrentOrder == null) return;
+
         // 1. 현재 수정할 CourseDetail 객체를 OrderManager에서 가져온다.
         currentCourseDetail = OrderManager.Instance.GetCurrentCourseDetailForEditing();
         if (currentCourseDetail == null)
@@ -383,14 +437,16 @@ public class DinnerDetailManager : MonoBehaviour
             return;
         }
 
-        // 2. 현재 코스 타입을 OrderManager의 Order 객체에서 알아낸다.
+        // 2. 현재 코스 타입을 가져온다. 
         string courseTypeString = OrderManager.Instance.CurrentOrder.courseGroups.Last().courseType;
-        // courseTypeString으로 CourseType을 가져올 수 있다. 
         currentCourseType = (CourseType)Enum.Parse(typeof(CourseType), courseTypeString);
 
         // 3. UI 초기화 및 재고 확인
         SetupPanelForCourse();
         _ = RefreshInventoryData(); // 패널이 켜질 때 DB에서 재고를 한 번만 가져온다. 
+
+        // 4. 초기 가격 계산 및 표시
+        UpdateCurrentOrderPrice();
     }
 
     // 패널 초기화
@@ -467,10 +523,7 @@ public class DinnerDetailManager : MonoBehaviour
             foreach (var detail in group.details)
             {
                 // 현재 편집 중인 코스(currentCourseDetail)는 계산에서 제외 
-                if (detail == currentCourseDetail)
-                {
-                    continue;
-                }
+                if (detail == currentCourseDetail) continue;
 
                 // (이전 코스)의 기본 재료 소모량 추가
                 foreach (var req in baseReqs)

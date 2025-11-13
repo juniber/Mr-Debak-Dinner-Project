@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 171097371}
   - component: {fileID: 171097372}
   - component: {fileID: 171097373}
+  - component: {fileID: 171097374}
   m_Layer: 0
   m_Name: AppInitializer
   m_TagString: Untagged
@@ -176,6 +177,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 983140b400d1bbe4d970bc6a35c4bd50, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UnityMainThreadDispatcher
+--- !u!114 &171097374
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 171097370}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29a307d5ac433d44ab2472a6822d2ab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PriceManager
 --- !u!1 &911052019
 GameObject:
   m_ObjectHideFlags: 0
