@@ -901,6 +901,7 @@ GameObject:
   - component: {fileID: 3675919853418663636}
   - component: {fileID: 801167267669655788}
   - component: {fileID: 3699786653122561290}
+  - component: {fileID: 1034461374753460237}
   m_Layer: 5
   m_Name: OrderItemPrefab
   m_TagString: Untagged
@@ -993,3 +994,20 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &1034461374753460237
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6930772005050862382}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78a9904e224d63741b679e56a4b51d79, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::OrderItemUI
+  CourseNameText: {fileID: 2971772703298383134}
+  StyleText: {fileID: 8934223046346711625}
+  AddonsText: {fileID: 1911267401310878462}
+  PriceText: {fileID: 2644205863716403565}
+  ChangeOptionButton: {fileID: 1095367294006732116}

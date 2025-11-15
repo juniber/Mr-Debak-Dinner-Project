@@ -12,6 +12,12 @@ public class CustomerMainManager : MonoBehaviour
         if (backgroundBlocker != null) { backgroundBlocker.SetActive(false); }
     }
 
+    private void OnEnable()
+    {
+        if (orderTypePanel != null) { orderTypePanel.SetActive(false); }
+        if (backgroundBlocker != null) { backgroundBlocker.SetActive(false); }
+    }
+
     // 주문 방식 선택 창과 뒷배경 블로커 활성화
     public void ShowOrderTypePanel()
     {

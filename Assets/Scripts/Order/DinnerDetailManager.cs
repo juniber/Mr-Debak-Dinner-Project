@@ -21,6 +21,7 @@ public class DinnerDetailManager : MonoBehaviour
     // '추가' 토글들이 들어있는 부모 오브젝트 (예: 'Content')
     [Header("Option Containers")] 
     public Transform addonContainer;
+    public ScrollRect optionScrollRect;
     public GameObject valentineRemoveGroup;
     public GameObject frenchRemoveGroup;
     public GameObject englishRemoveGroup;
@@ -441,42 +442,95 @@ public class DinnerDetailManager : MonoBehaviour
         string courseTypeString = OrderManager.Instance.CurrentOrder.courseGroups.Last().courseType;
         currentCourseType = (CourseType)Enum.Parse(typeof(CourseType), courseTypeString);
 
-        // 3. UI 초기화 및 재고 확인
-        SetupPanelForCourse();
-        _ = RefreshInventoryData(); // 패널이 켜질 때 DB에서 재고를 한 번만 가져온다. 
-
-        // 4. 초기 가격 계산 및 표시
-        UpdateCurrentOrderPrice();
-    }
-
-    // 패널 초기화
-    private void SetupPanelForCourse()
-    {
         // '제외' 그룹 활성화/비활성화 (기존과 동일)
         valentineRemoveGroup.SetActive(currentCourseType == CourseType.ValentineDinner);
         frenchRemoveGroup.SetActive(currentCourseType == CourseType.FrenchDinner);
         englishRemoveGroup.SetActive(currentCourseType == CourseType.EnglishDinner);
         champagneRemoveGroup.SetActive(currentCourseType == CourseType.ChampagneFeastDinner);
 
-        // 스타일 토글 초기화 (기존과 동일)
-        simpleToggle.isOn = true;
-        grandToggle.isOn = false;
-        deluxeToggle.isOn = false;
+        // 3. 이 코스가 '새 코스'인지 '기존 코스'인지 확인
+        if (currentCourseDetail.style == StyleType.None)
+        {
+            // Case 1: "새 코스 추가"
+            // (style이 초기값이므로, 패널 전체를 기본값으로 리셋)
+            Debug.Log("새 코스 추가: 패널을 기본값으로 초기화합니다.");
+            ResetPanelToDefaults();
+        }
+        else
+        {
+            // Case 2: "옵션 변경"
+            // (style이 Simple, Grand, Deluxe 중 하나이므로, 저장된 데이터 로드)
+            Debug.Log("옵션 변경: 저장된 데이터를 로드합니다.");
+            LoadDataFromDetail();
+        }
+
+        // 4. DB에서 재고를 가져와 UI에 반영
+        _ = RefreshInventoryData(); 
+
+        // 5. 초기 가격 계산 및 표시
+        UpdateCurrentOrderPrice();
+
+        // 6. 스크롤바를 맨 위로 올림
+        if (optionScrollRect != null)
+        {
+            optionScrollRect.verticalNormalizedPosition = 1f;
+        }
+    }
+
+    // '옵션 변경' 시, currentCourseDetail에 저장된 데이터로 UI를 복원
+    private void LoadDataFromDetail()
+    {
+        // 1. 스타일 로드
+        StyleType currentStyle = currentCourseDetail.style;
+        simpleToggle.isOn = (currentStyle == StyleType.Simple);
+        grandToggle.isOn = (currentStyle == StyleType.Grand);
+        deluxeToggle.isOn = (currentStyle == StyleType.Deluxe);
         // Simple 스타일 설명 즉시 표시
         OnStyleToggleChanged(true, StyleType.Simple);
 
-        // '추가' 토글들도 모두 끔 (자동화된 루프)
+        // 2. '추가' 토글 로드
         foreach (var linker in addonToggles)
         {
-            linker.Toggle.isOn = false;
+            linker.Toggle.isOn = currentCourseDetail.addedItems.Contains(linker.addonKey);
         }
 
-        // '제외' 토글들도 모두 끔 (자동화된 루프)
+        // 3. '제외' 토글 로드
         if (removeTogglesMap.ContainsKey(currentCourseType))
         {
             foreach (var linker in removeTogglesMap[currentCourseType])
             {
-                linker.Toggle.isOn = false;
+                if (linker.Toggle != null)
+                {
+                    // currentCourseDetail의 removedItems 리스트에 이 토글의 키가 있는지 확인
+                    linker.Toggle.isOn = currentCourseDetail.removedItems.Contains(linker.addonKey);
+                }
+            }
+        }
+    }
+
+    // '새 코스 추가' 시, 패널 UI를 기본값으로 리셋
+    private void ResetPanelToDefaults()
+    {
+        // 스타일 토글 초기화
+        simpleToggle.isOn = true;
+        grandToggle.isOn = false;
+        deluxeToggle.isOn = false;
+
+        // Simple 스타일 설명 즉시 표시
+        OnStyleToggleChanged(true, StyleType.Simple);
+
+        // '추가' 토글들도 모두 끔
+        foreach (var linker in addonToggles)
+        {
+            if (linker.Toggle != null) linker.Toggle.isOn = false;
+        }
+
+        // '제외' 토글들도 모두 끔
+        if (removeTogglesMap.ContainsKey(currentCourseType))
+        {
+            foreach (var linker in removeTogglesMap[currentCourseType])
+            {
+                if (linker.Toggle != null) linker.Toggle.isOn = false;
             }
         }
     }
