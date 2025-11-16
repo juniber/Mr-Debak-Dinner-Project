@@ -27,7 +27,7 @@ public class ConfirmOrderManager : MonoBehaviour
 
     [Header("Navigation")]
     public Button WithdrawOrderButton;
-    public Button GoToPaymentButton;
+    public Button PaymentButton;
 
     private Order currentOrder;
     private DatabaseReference dbReference;
@@ -42,7 +42,7 @@ public class ConfirmOrderManager : MonoBehaviour
         DeleteAllButton.onClick.AddListener(OnDeleteAllClicked);
         AddCourseButton.onClick.AddListener(OnAddCourseClicked);
         WithdrawOrderButton.onClick.AddListener(OnWithdrawOrderClicked);
-        GoToPaymentButton.onClick.AddListener(OnGoToPaymentClicked);
+        PaymentButton.onClick.AddListener(OnPaymentClicked);
 
         // 요청사항은 입력이 끝났을 때(수정 완료) 저장
         RequestInput.onEndEdit.AddListener(OnRequestInputChanged);
@@ -56,7 +56,7 @@ public class ConfirmOrderManager : MonoBehaviour
         bool isCartEmpty = (currentOrder == null || currentOrder.GetTotalCourseCount() == 0);
 
         // 장바구니가 비어있으면 결제 버튼 비활성화
-        GoToPaymentButton.interactable = !isCartEmpty;
+        PaymentButton.interactable = !isCartEmpty;
         DeleteAllButton.interactable = !isCartEmpty;
 
         // 1. 사용자 주소/전화번호 불러오기
@@ -198,7 +198,7 @@ public class ConfirmOrderManager : MonoBehaviour
         LoadRequestInput();
 
         // 장바구니가 비었으므로 버튼들 비활성화
-        GoToPaymentButton.interactable = false;
+        PaymentButton.interactable = false;
         DeleteAllButton.interactable = false;
     }
 
@@ -216,11 +216,30 @@ public class ConfirmOrderManager : MonoBehaviour
     }
 
     // "결제하기" 버튼 클릭 시
-    private void OnGoToPaymentClicked()
+    private async void OnPaymentClicked()
     {
-        // TODO: 결제 전 유효성 검사 (주문이 비어있는지 등)
+        // 1. 버튼 비활성화 (중복 전송 방지)
+        PaymentButton.interactable = false;
+        UIManager.Instance.ShowTemporaryStatus("주문을 전송하는 중...", 10f); // 10초간 로딩 메시지
 
-        UIManager.Instance.ShowPanel("PaymentPanel"); // (PaymentPanel은 나중에 만듭니다)
+        try
+        {
+            // 2. (안전 장치) InputField의 현재 텍스트를 Order 객체에 즉시 저장
+            OnRequestInputChanged(RequestInput.text);
+
+            // 3. OrderManager에 주문 전송(결제) 요청
+            await OrderManager.Instance.FinalizeAndSubmitOrder();
+
+            // 4. 성공 시, 주문 완료 패널로 이동
+            UIManager.Instance.ShowPanel("OrderCompletePanel");
+        }
+        catch (Exception ex)
+        {
+            // 5. 실패 시, 사용자에게 알리고 버튼 다시 활성화
+            Debug.LogError($"주문 전송 실패: {ex}");
+            UIManager.Instance.ShowTemporaryStatus("주문 전송에 실패했습니다. 다시 시도해주세요.", 3f);
+            PaymentButton.interactable = true;
+        }
     }
 
     // "가게 요청사항" InputField 입력 완료 시
