@@ -1,7 +1,9 @@
-using UnityEngine;
 using Firebase.Auth;
 using Firebase.Database;
+using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using UnityEngine;
 
 // 주문 세션을 관리하는 싱글톤
 // 사용자가 앱을 실행하는 동안 생성 중인 'Order' 객체를 보관
@@ -58,7 +60,6 @@ public class OrderManager : MonoBehaviour
         CurrentOrder.AddCourse(type);
         // 방금 추가한 새 CourseDetail을 '수정 대상'으로 자동 설정
         _editingCourseDetail = CurrentOrder.GetLastAddedCourseDetail();
-        Debug.Log($"[{type}] 코스 추가됨. 현재 총 {CurrentOrder.GetTotalCourseCount()}개 코스.");
     }
 
     // "옵션 변경" 시, 수정할 대상을 명시적으로 설정
@@ -86,8 +87,9 @@ public class OrderManager : MonoBehaviour
         _editingCourseDetail = null;
     }
 
-    // (추후 구현) 현재 주문을 DB에 저장하고 세션을 종료합니다.
-    public async Task FinalizeAndSubmitOrder()
+    // 현재 주문을 DB에 저장하고 세션을 종료
+    // 'isReservation' 플래그를 받아 즉시 주문과 예약 주문을 구분
+    public async Task FinalizeAndSubmitOrder(bool isReservation)
     {
         if (CurrentOrder == null)
         {
@@ -95,26 +97,132 @@ public class OrderManager : MonoBehaviour
             return;
         }
 
-        // 최종 가격과 요청사항을 DB에 저장하기 전에 마지막으로 업데이트
+        // 1. 주문 객체 상태 확정
         PriceManager.Instance.CalculateTotalPrice(CurrentOrder);
-        // (요청사항은 ConfirmOrderManager의 onEndEdit에서 이미 Order 객체에 저장됨)
-
-        // 주문 상태 변경 및 타임스탬프 기록
-        CurrentOrder.status = OrderStatus.Confirmed;
+        CurrentOrder.status = OrderStatus.Confirmed; // '확정' 상태
         CurrentOrder.orderTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        CurrentOrder.isReservation = isReservation;
 
-        // Order 객체를 JSON으로 변환
+        // 2. 재고 차감 (즉시 주문일 경우에만)
+        try
+        {
+            // (수정) 재고 차감 로직을 실제 구현 함수로 변경
+            await SubtractInventory(CurrentOrder);
+        }
+        catch (Exception ex)
+        {
+            // 재고 차감 트랜잭션 실패 (예: 동시 접속으로 재고 부족)
+            Debug.LogError($"재고 차감 실패: {ex.Message}");
+            // 사용자에게 오류 메시지를 표시하고 주문 전송을 중단
+            UIManager.Instance.ShowTemporaryStatus("죄송합니다. 주문 중 재고가 소진되었습니다.", 3f, 1);
+            throw; // 예외를 다시 던져서 ConfirmOrderManager의 catch 블록이 실행되도록 함
+        }
+
+        // 3. Order 객체를 JSON으로 변환
         string json = JsonUtility.ToJson(CurrentOrder, true);
-
         Debug.Log("--- 최종 주문 DB 전송 ---");
         Debug.Log(json);
 
-        // "orders" 경로에 주문 ID를 키로 하여 저장
-        await dbReference.Child("orders").Child(CurrentOrder.orderId).SetRawJsonValueAsync(json);
+        // 4. (수정) 주문 경로 분리
+        string orderPath = isReservation ? "scheduledOrders" : "orders";
 
-        Debug.Log("주문이 DB로 전송되었습니다.");
+        await dbReference.Child(orderPath).Child(CurrentOrder.orderId).SetRawJsonValueAsync(json);
 
-        // 주문 완료 후 장바구니(CurrentOrder) 비우기
+        Debug.Log($"주문이 [{orderPath}] 경로로 전송되었습니다.");
+
+        // 5. 주문 완료 후 장바구니(CurrentOrder) 비우기
         ClearOrder();
+    }
+
+    // 주문에 사용된 모든 재료를 계산하여 DB에서 차감
+    private async Task SubtractInventory(Order order)
+    {
+        Debug.Log("주문 확정: 재고 차감을 시작합니다...");
+        var totalCost = new Dictionary<string, long>();
+        var addonCosts = MenuData.GetAddonCosts(); // 중앙 데이터 가져오기
+
+        // 1. 장바구니의 모든 재료 소모량 계산
+        foreach (var group in order.courseGroups)
+        {
+            CourseType type = (CourseType)System.Enum.Parse(typeof(CourseType), group.courseType);
+            var baseReqs = MenuData.GetCourseBaseRequirements(type);
+
+            foreach (var detail in group.details)
+            {
+                // 기본 재료
+                foreach (var req in baseReqs)
+                {
+                    if (!totalCost.ContainsKey(req.Key)) totalCost[req.Key] = 0;
+                    totalCost[req.Key] += req.Value;
+                }
+
+                // 추가 재료
+                foreach (string addonKey in detail.addedItems)
+                {
+                    if (addonCosts.TryGetValue(addonKey, out var costInfo))
+                    {
+                        if (!totalCost.ContainsKey(costInfo.InventoryKey)) totalCost[costInfo.InventoryKey] = 0;
+                        totalCost[costInfo.InventoryKey] += costInfo.Amount;
+                    }
+                }
+
+                // 제외 재료 (환불)
+                foreach (string removedKey in detail.removedItems)
+                {
+                    var refund = MenuData.GetRefundInfo(type, removedKey);
+                    if (refund != null)
+                    {
+                        if (!totalCost.ContainsKey(refund.InventoryKey)) totalCost[refund.InventoryKey] = 0;
+                        totalCost[refund.InventoryKey] -= refund.Amount;
+                    }
+                }
+            }
+        }
+
+        // 2. 계산된 총 소모량을 기반으로 DB 트랜잭션 실행
+        List<Task> transactionTasks = new List<Task>();
+        foreach (var item in totalCost)
+        {
+            string itemKey = item.Key;
+            long amountToSubtract = item.Value;
+
+            if (amountToSubtract <= 0) continue; // 0 이하면 차감할 필요 없음
+
+            DatabaseReference itemRef = dbReference.Child("inventory").Child(itemKey);
+
+            Debug.Log($"[Transaction] {itemKey} 재고 {amountToSubtract} 차감 시도...");
+
+            // 각 재료 항목에 대해 개별 트랜잭션 실행
+            Task transactionTask = itemRef.RunTransaction(data =>
+            {
+                if (data.Value == null)
+                {
+                    // DB에 해당 재고 항목이 없음. 오류로 중단.
+                    Debug.LogWarning($"재고 차감 실패: {itemKey} 항목이 DB에 없습니다.");
+                    return TransactionResult.Abort();
+                }
+
+                long currentStock = Convert.ToInt64(data.Value);
+                if (currentStock < amountToSubtract)
+                {
+                    // (중요) 재고 부족. 트랜잭션을 중단.
+                    // 이 중단은 Exception을 발생시켜 FinalizeAndSubmitOrder의 catch 블록으로 이동시킴.
+                    Debug.LogWarning($"재고 차감 실패(부족): {itemKey}. 필요: {amountToSubtract}, 현재: {currentStock}");
+                    return TransactionResult.Abort();
+                }
+
+                // 재고 차감
+                data.Value = currentStock - amountToSubtract;
+                return TransactionResult.Success(data);
+            });
+
+            transactionTasks.Add(transactionTask);
+        }
+
+        // 3. 모든 재고 차감 트랜잭션이 완료될 때까지 기다림
+        // 만약 하나라도 Abort()되면, Task.WhenAll이 예외(DatabaseException)를 던집니다.
+        await Task.WhenAll(transactionTasks);
+
+        Debug.Log("모든 재고 차감 트랜잭션 완료.");
     }
 }

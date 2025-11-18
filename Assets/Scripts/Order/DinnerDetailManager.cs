@@ -2,6 +2,7 @@ using Firebase.Database;
 using System; // Convert.ToBoolean
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using TMPro;
 using Unity.VisualScripting.Antlr3.Runtime.Tree;
@@ -41,9 +42,9 @@ public class DinnerDetailManager : MonoBehaviour
     // 찾은 토글들을 저장할 리스트와 딕셔너리
     private List<AddonToggleLinker> addonToggles = new List<AddonToggleLinker>();
     private Dictionary<CourseType, List<AddonToggleLinker>> removeTogglesMap = new Dictionary<CourseType, List<AddonToggleLinker>>();
-    // '추가' 항목의 재고 소모량을 정의하는 딕셔너리 (중앙 관리)
-    private Dictionary<string, AddonInventoryInfo> addonInventoryCosts;
 
+    // '추가' 항목의 재고 소모량을 정의하는 딕셔너리 (중앙 관리)
+    private Dictionary<string, MenuData.AddonInventoryInfo> addonInventoryCosts;
     // '제외' 키와 충돌하는 '추가' 키들의 맵
     // Key: RemoveKey (예: "RemoveWine"), Value: List of conflicting AddKeys (예: ["AddWineGlass", "AddWineBottle"])
     private Dictionary<string, List<string>> conflictMap;
@@ -54,20 +55,12 @@ public class DinnerDetailManager : MonoBehaviour
     // DB에서 가져온 재고 스냅샷 (캐시)
     private DataSnapshot inventorySnapshot;
 
-    // 재고 소모량 정의를 위한 작은 헬퍼 클래스
-    private class AddonInventoryInfo
-    {
-        public string InventoryKey;
-        public long Amount;
-        public AddonInventoryInfo(string key, long amount) { InventoryKey = key; Amount = amount; }
-    }
-
     void Awake()
     {
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
 
         // 1. '추가' 항목 재고 소모량 & 충돌 맵 초기화
-        InitializeInventoryCostMap();
+        addonInventoryCosts = MenuData.GetAddonCosts();
         InitializeConflictMap();
 
         // 2. '추가' 토글들 자동 스캔
@@ -118,28 +111,6 @@ public class DinnerDetailManager : MonoBehaviour
         // 7. 하단 버튼 리스너 연결
         addCourseButton.onClick.AddListener(OnAddCourseClicked);
         confirmOrderButton.onClick.AddListener(OnConfirmOrderClicked);
-    }
-
-    // '추가' 항목 재고 소모량 맵을 초기화하는 함수
-    private void InitializeInventoryCostMap()
-    {
-        addonInventoryCosts = new Dictionary<string, AddonInventoryInfo>
-        {
-            { AddonKeys.AddSteak80g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 80) },
-            { AddonKeys.AddSteak160g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 160) },
-            { AddonKeys.AddMiniCorn2P, new AddonInventoryInfo(InventoryKeys.MiniCornPcs, 2) },
-            { AddonKeys.AddPotatoSalad180g, new AddonInventoryInfo(InventoryKeys.PotatoSaladG, 180) },
-            { AddonKeys.AddSalad70g, new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70) }, 
-            { AddonKeys.AddBacon18g, new AddonInventoryInfo(InventoryKeys.BaconG, 18) },
-            { AddonKeys.AddScrambledEggs, new AddonInventoryInfo(InventoryKeys.EggsPcs, 1) },
-            { AddonKeys.AddBaguette3P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 3) },
-            { AddonKeys.AddBaguette6P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 6) },
-            { AddonKeys.AddWineGlass, new AddonInventoryInfo(InventoryKeys.WineServings, 1) },
-            { AddonKeys.AddWineBottle, new AddonInventoryInfo(InventoryKeys.WineServings, 5) },
-            { AddonKeys.AddCoffeeGlass, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1) },
-            { AddonKeys.AddCoffeePot, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4) },
-            { AddonKeys.AddChampagneBottle, new AddonInventoryInfo(InventoryKeys.ChampagneBottles, 1) }
-        };
     }
 
     // '추가'와 '제외' 토글 간의 충돌 맵
@@ -211,13 +182,18 @@ public class DinnerDetailManager : MonoBehaviour
                 // 2. 재고 검사 (충돌하지 않았을 경우에만)
                 if (!isConflicted)
                 {
-                    if (addonInventoryCosts.TryGetValue(linker.addonKey, out AddonInventoryInfo cost))
+                    if (addonInventoryCosts.TryGetValue(linker.addonKey, out var cost))
                     {
                         // 재고 확인
                         long baseAmount = baseRequirements.TryGetValue(cost.InventoryKey, out var b) ? b : 0;
                         long committedAmount = committedCost.TryGetValue(cost.InventoryKey, out var c) ? c : 0;
                         long refundAmount = currentRefunds.TryGetValue(cost.InventoryKey, out var r) ? r : 0;
-                        long currentStock = Convert.ToInt64(inventorySnapshot.Child(cost.InventoryKey).Value);
+                        long currentStock = 0;
+
+                        if (inventorySnapshot.Child(cost.InventoryKey).Exists && inventorySnapshot.Child(cost.InventoryKey).Value != null)
+                        {
+                            currentStock = Convert.ToInt64(inventorySnapshot.Child(cost.InventoryKey).Value);
+                        }
 
                         long totalDemand = (committedAmount + baseAmount + cost.Amount) - refundAmount;
                         isStockAvailable = (currentStock >= totalDemand);
@@ -270,7 +246,7 @@ public class DinnerDetailManager : MonoBehaviour
         {
             if (linker.Toggle.isOn) // '제외' 토글이 켜져있다면
             {
-                AddonInventoryInfo refund = GetRefundInfo(currentCourseType, linker.addonKey);
+                var refund = MenuData.GetRefundInfo(currentCourseType, linker.addonKey);
                 if (refund != null)
                 {
                     if (!refunds.ContainsKey(refund.InventoryKey)) refunds[refund.InventoryKey] = 0;
@@ -279,37 +255,6 @@ public class DinnerDetailManager : MonoBehaviour
             }
         }
         return refunds;
-    }
-
-    // '제외' 키(AddonKey)에 따라 환불되는 재료(InventoryKey)와 수량(Amount)을 반환
-    private AddonInventoryInfo GetRefundInfo(CourseType courseType, string removeKey)
-    {
-        // 코스별로 기본 제공량이 다르므로, 환불량도 다르다.
-        switch (courseType)
-        {
-            case CourseType.ValentineDinner:
-                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5); // 1병(5잔)
-                break;
-
-            case CourseType.FrenchDinner:
-                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1);
-                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 1);
-                if (removeKey == AddonKeys.RemoveSalad) return new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70);
-                break;
-
-            case CourseType.EnglishDinner:
-                if (removeKey == AddonKeys.RemoveEggs) return new AddonInventoryInfo(InventoryKeys.EggsPcs, 2);
-                if (removeKey == AddonKeys.RemoveBacon) return new AddonInventoryInfo(InventoryKeys.BaconG, 18);
-                if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 1);
-                break;
-
-            case CourseType.ChampagneFeastDinner:
-                if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 4);
-                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4); // 1포트(4잔)
-                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5); // 1병(5잔)
-                break;
-        }
-        return null; // 해당하는 환불 항목이 없음
     }
 
     //'추가' 토글이 클릭되면 호출되는 이벤트 함수
@@ -451,15 +396,11 @@ public class DinnerDetailManager : MonoBehaviour
         // 3. 이 코스가 '새 코스'인지 '기존 코스'인지 확인
         if (currentCourseDetail.style == StyleType.None)
         {
-            // Case 1: "새 코스 추가"
-            // (style이 초기값이므로, 패널 전체를 기본값으로 리셋)
             Debug.Log("새 코스 추가: 패널을 기본값으로 초기화합니다.");
             ResetPanelToDefaults();
         }
         else
         {
-            // Case 2: "옵션 변경"
-            // (style이 Simple, Grand, Deluxe 중 하나이므로, 저장된 데이터 로드)
             Debug.Log("옵션 변경: 저장된 데이터를 로드합니다.");
             LoadDataFromDetail();
         }
@@ -562,10 +503,7 @@ public class DinnerDetailManager : MonoBehaviour
         var committedCost = new Dictionary<string, long>();
         var order = OrderManager.Instance.CurrentOrder;
 
-        if (order == null || order.courseGroups == null)
-        {
-            return committedCost;
-        }
+        if (order == null || order.courseGroups == null) return committedCost;
 
         // 장바구니의 모든 코스 그룹(Valentine, French...)을 순회
         foreach (var group in order.courseGroups)
@@ -589,7 +527,7 @@ public class DinnerDetailManager : MonoBehaviour
                 // (이전 코스)의 추가 재료 소모량 추가
                 foreach (string addonKey in detail.addedItems)
                 {
-                    if (addonInventoryCosts.TryGetValue(addonKey, out AddonInventoryInfo costInfo))
+                    if (addonInventoryCosts.TryGetValue(addonKey, out var costInfo))
                     {
                         if (!committedCost.ContainsKey(costInfo.InventoryKey)) committedCost[costInfo.InventoryKey] = 0;
                         committedCost[costInfo.InventoryKey] += costInfo.Amount;
@@ -599,7 +537,7 @@ public class DinnerDetailManager : MonoBehaviour
                 // (이전 코스) 제외 재료로 인한 환불(차감)
                 foreach (string removedKey in detail.removedItems)
                 {
-                    AddonInventoryInfo refund = GetRefundInfo(type, removedKey);
+                    var refund = MenuData.GetRefundInfo(type, removedKey);
                     if (refund != null)
                     {
                         if (!committedCost.ContainsKey(refund.InventoryKey)) committedCost[refund.InventoryKey] = 0;

@@ -44,9 +44,17 @@ public static class AddonKeys
     public const string RemoveBaguette = "RemoveBaguette";
 }
 
-// 메뉴 레시피(기본 재료 소모량)를 중앙에서 관리하는 static 클래스
+// 메뉴 레시피, 추가/제외 항목의 재료/환불 정보를 중앙에서 관리하는 static 클래스
 public static class MenuData
 {
+    // '추가' 항목의 재고 소모량 정의를 위한 헬퍼 클래스
+    public class AddonInventoryInfo
+    {
+        public string InventoryKey;
+        public long Amount;
+        public AddonInventoryInfo(string key, long amount) { InventoryKey = key; Amount = amount; }
+    }
+
     // 코스 타입에 따라 필요한 기본 식재료 딕셔너리를 반환
     public static Dictionary<string, long> GetCourseBaseRequirements(CourseType courseType)
     {
@@ -86,6 +94,55 @@ public static class MenuData
                 break;
         }
         return requirements;
+    }
+
+    // '추가' 항목(AddonKey)과 재료 소모량(InventoryInfo) 맵을 반환
+    public static Dictionary<string, AddonInventoryInfo> GetAddonCosts()
+    {
+        return new Dictionary<string, AddonInventoryInfo>
+        {
+            { AddonKeys.AddSteak80g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 80) },
+            { AddonKeys.AddSteak160g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 160) },
+            { AddonKeys.AddMiniCorn2P, new AddonInventoryInfo(InventoryKeys.MiniCornPcs, 2) },
+            { AddonKeys.AddPotatoSalad180g, new AddonInventoryInfo(InventoryKeys.PotatoSaladG, 180) },
+            { AddonKeys.AddSalad70g, new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70) },
+            { AddonKeys.AddBacon18g, new AddonInventoryInfo(InventoryKeys.BaconG, 18) },
+            { AddonKeys.AddScrambledEggs, new AddonInventoryInfo(InventoryKeys.EggsPcs, 1) },
+            { AddonKeys.AddBaguette3P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 3) },
+            { AddonKeys.AddBaguette6P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 6) },
+            { AddonKeys.AddWineGlass, new AddonInventoryInfo(InventoryKeys.WineServings, 1) },
+            { AddonKeys.AddWineBottle, new AddonInventoryInfo(InventoryKeys.WineServings, 5) },
+            { AddonKeys.AddCoffeeGlass, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1) },
+            { AddonKeys.AddCoffeePot, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4) },
+            { AddonKeys.AddChampagneBottle, new AddonInventoryInfo(InventoryKeys.ChampagneBottles, 1) }
+        };
+    }
+
+    // '제외' 키(AddonKey)에 따라 환불되는 재료(InventoryKey)와 수량(Amount)을 반환
+    public static AddonInventoryInfo GetRefundInfo(CourseType courseType, string removeKey)
+    {
+        switch (courseType)
+        {
+            case CourseType.ValentineDinner:
+                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5);
+                break;
+            case CourseType.FrenchDinner:
+                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1);
+                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 1);
+                if (removeKey == AddonKeys.RemoveSalad) return new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70);
+                break;
+            case CourseType.EnglishDinner:
+                if (removeKey == AddonKeys.RemoveEggs) return new AddonInventoryInfo(InventoryKeys.EggsPcs, 2);
+                if (removeKey == AddonKeys.RemoveBacon) return new AddonInventoryInfo(InventoryKeys.BaconG, 18);
+                if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 1);
+                break;
+            case CourseType.ChampagneFeastDinner:
+                if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 4);
+                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4);
+                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5);
+                break;
+        }
+        return null;
     }
 }
 
@@ -163,6 +220,11 @@ public class Order
     // 가격 계산 로직은 PriceManager가 담당. 변수만 유지.
     public long totalPrice;
 
+    // 배달 예약 날짜
+    public string deliveryDate;
+    // 이 주문이 즉시 배달인지, 예약인지 여부
+    public bool isReservation;
+
     public Order(string userId)
     {
         this.userId = userId;
@@ -171,6 +233,10 @@ public class Order
         this.courseGroups = new List<CourseGroup>();
         this.globalRequests = ""; // 초기화
         this.totalPrice = 0;
+
+        // 기본값은 '오늘' '즉시 배달'
+        this.deliveryDate = DateTime.Today.ToString("yyyy-MM-dd");
+        this.isReservation = false;
     }
 
     // 새 코스를 주문에 추가하는 함수

@@ -115,8 +115,8 @@ public class CalendarManager : MonoBehaviour
         // 1. OrderManager에 예약 날짜 저장
         if (OrderManager.Instance.CurrentOrder != null)
         {
-            // OrderManager.Instance.CurrentOrder.deliveryDate = selectedDate.ToString("yyyy-MM-dd");
-            // OrderManager.Instance.CurrentOrder.isReservation = true; // 예약 주문으로 설정
+            OrderManager.Instance.CurrentOrder.deliveryDate = selectedDate.ToString("yyyy-MM-dd");
+            OrderManager.Instance.CurrentOrder.isReservation = true; // 예약 주문으로 설정
         }
 
         // 2. ConfirmOrderPanel의 텍스트 업데이트
