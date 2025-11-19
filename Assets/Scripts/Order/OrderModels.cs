@@ -167,11 +167,12 @@ public enum StyleType
 // 주문의 현재 상태
 public enum OrderStatus
 {
-    Pending,        // 주문 완료 전 (현재 장바구니 상태)
-    Confirmed,      // 주문 완료
-    Cooking,        // 조리 중
-    Delivering,     // 배달 중
-    Completed       // 배달 완료 
+    Pending,     // 0 (장바구니 상태)
+    Reserved,    // 1 (신규! 예약 확정 상태)
+    Confirmed,   // 2 (즉시 주문 확정 상태)
+    Cooking,     // 3 (조리 중)
+    Delivering,  // 4 (배달 중)
+    Completed    // 5 (배달 완료)
 }
 
 // 각 코스별 상세 설정 (스타일, 요청사항 등)

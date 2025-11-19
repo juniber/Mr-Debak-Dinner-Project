@@ -99,7 +99,16 @@ public class OrderManager : MonoBehaviour
 
         // 1. 주문 객체 상태 확정
         PriceManager.Instance.CalculateTotalPrice(CurrentOrder);
-        CurrentOrder.status = OrderStatus.Confirmed; // '확정' 상태
+
+        // 예약 여부에 따라 상태를 다르게 설정
+        if (isReservation)
+        {
+            CurrentOrder.status = OrderStatus.Reserved; // (Enum 값 1)
+        }
+        else
+        {
+            CurrentOrder.status = OrderStatus.Confirmed; // (Enum 값 2)
+        }
         CurrentOrder.orderTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         CurrentOrder.isReservation = isReservation;
 
@@ -112,7 +121,7 @@ public class OrderManager : MonoBehaviour
         catch (Exception ex)
         {
             // 재고 차감 트랜잭션 실패 (예: 동시 접속으로 재고 부족)
-            Debug.LogError($"재고 차감 실패: {ex.Message}");
+            Debug.LogError($"재고 차감 실패: {ex}");
             // 사용자에게 오류 메시지를 표시하고 주문 전송을 중단
             UIManager.Instance.ShowTemporaryStatus("죄송합니다. 주문 중 재고가 소진되었습니다.", 3f, 1);
             throw; // 예외를 다시 던져서 ConfirmOrderManager의 catch 블록이 실행되도록 함

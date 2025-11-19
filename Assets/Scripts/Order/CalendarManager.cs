@@ -70,6 +70,9 @@ public class CalendarManager : MonoBehaviour
             GameObject emptySlot = Instantiate(dateButtonPrefab, dateGridPanel);
             emptySlot.GetComponent<Button>().interactable = false; // 클릭 불가
             emptySlot.GetComponentInChildren<TMP_Text>().text = "";
+
+            // 생성된 빈 슬롯을 리스트에 추가
+            dateButtons.Add(emptySlot);
         }
 
         // 6. 실제 날짜 버튼 생성
@@ -77,6 +80,9 @@ public class CalendarManager : MonoBehaviour
         {
             GameObject dateButton = Instantiate(dateButtonPrefab, dateGridPanel);
             dateButton.GetComponentInChildren<TMP_Text>().text = day.ToString();
+
+            // 생성된 날짜 버튼을 리스트에 추가
+            dateButtons.Add(dateButton);
 
             DateTime buttonDate = new DateTime(date.Year, date.Month, day);
 
