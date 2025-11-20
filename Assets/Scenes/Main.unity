@@ -27895,6 +27895,7 @@ MonoBehaviour:
   closeButton: {fileID: 910566721}
   statusText: {fileID: 1631390623}
   resultText: {fileID: 1326846504}
+  googleApiKey: AIzaSyDd9gEAAedl3gJ1TDWhZCK2fUpqsaKvDWI
 --- !u!1 &1763031327
 GameObject:
   m_ObjectHideFlags: 0
