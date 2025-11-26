@@ -19,6 +19,9 @@ public class UIManager : MonoBehaviour
     // 3. 패널 딕셔너리 : 빠른 이름 기반 검색을 위해 사용
     private Dictionary<string, GameObject> panelDictionary = new Dictionary<string, GameObject>();
 
+    // 현재 활성화된 패널의 이름을 저장할 변수
+    private string currentPanelName = "";
+
     private void Awake()
     {
         // 싱글톤 패널 설정
@@ -50,7 +53,7 @@ public class UIManager : MonoBehaviour
     // 4. 범용 패널 표시 함수
     public void ShowPanel(string panelName)
     {
-        // 먼저 모든 패널을 비활성화합니다.
+        // 먼저 모든 패널을 비활성화
         foreach (var panel in panels)
         {
             panel.SetActive(false);
@@ -59,7 +62,7 @@ public class UIManager : MonoBehaviour
         // 요청받은 이름의 패널을 찾아 활성화
         if (panelDictionary.TryGetValue(panelName, out GameObject panelToShow))
         {
-            // 보여주기 전에 해당 패널에 있는 모든 InputField의 텍스트를 초기화한다.
+            // 보여주기 전에 해당 패널에 있는 모든 InputField의 텍스트를 초기화
             var inputFields = panelToShow.GetComponentsInChildren<TMP_InputField>();
             foreach (var field in inputFields)
             {
@@ -67,11 +70,20 @@ public class UIManager : MonoBehaviour
             }
 
             panelToShow.SetActive(true);
+
+            // 현재 패널 이름 업데이트
+            currentPanelName = panelName;
         }
         else
         {
             Debug.LogWarning($"패널을 찾을 수 없습니다: {panelName}");
         }
+    }
+
+    // 현재 활성화된 패널의 이름을 반환하는 함수
+    public string GetCurrentPanelName()
+    {
+        return currentPanelName;
     }
 
     // UIManager가 대신 실행할 코루틴

@@ -20,6 +20,11 @@ public class VoiceOrderManager : MonoBehaviour
     // ★ 중요: Google Cloud Console에서 발급받은 API 키를 인스펙터 창에서 입력
     public string googleApiKey = "";
 
+    // 로컬 파이썬 서버 주소
+    private string localServerUrl = "http://localhost:8000/chat";
+    // 대화 맥락 유지를 위한 세션 ID
+    private string currentSessionId = "";
+
     // 오디오 관련 변수
     private AudioSource audioSource;
     private AudioClip recordedClip;
@@ -51,12 +56,18 @@ public class VoiceOrderManager : MonoBehaviour
         if (closeButton != null) closeButton.onClick.AddListener(() => {
             StopAllCoroutines();
             if (isRecording) Microphone.End(microphoneDevice);
+
+            // 창을 닫으면 세션 ID를 지워버림 (대화 기억 삭제)
+            ResetSession();
             UIManager.Instance.ShowPanel("CustomerMainPanel");
         });
     }
 
     private void OnEnable()
-    { 
+    {
+        // 새로운 주문을 시작할 때마다 기억을 깨끗하게 비움
+        ResetSession();
+
         // 패널이 열릴 때마다 상태 메시지 리셋
         if (Microphone.devices.Length > 0)
         {
@@ -69,6 +80,12 @@ public class VoiceOrderManager : MonoBehaviour
 
         if (resultText != null) resultText.text = "";
         isRecording = false;
+    }
+
+    // 세션 초기화 함수 (기억 지우기)
+    private void ResetSession()
+    {
+        currentSessionId = ""; // ID를 공란으로 만듦 -> 서버는 새로운 대화로 인식함
     }
 
     // 녹음 버튼 클릭 시 호출
@@ -119,7 +136,7 @@ public class VoiceOrderManager : MonoBehaviour
 
         isRecording = false;
         Microphone.End(microphoneDevice); // 녹음 하드웨어 중지
-        statusText.text = "녹음 완료. 변환 준비 중...";  
+        statusText.text = "음성 인식 중...";  
 
         // 녹음된 데이터 처리
         ProcessRecordedAudio();
@@ -191,8 +208,6 @@ public class VoiceOrderManager : MonoBehaviour
             {
                 // 요청 성공 시, 서버가 보낸 응답 텍스트(JSON)를 가져온다. 
                 string response = request.downloadHandler.text;
-                Debug.Log($"STT Response: {response}");
-
                 // JSON 파싱 (아래 정의된 GoogleSTTResponse 데이터 클래스 사용)
                 // JsonUtility를 사용하여 JSON 문자열을 C# 객체로 변환
                 GoogleSTTResponse sttResponse = JsonUtility.FromJson<GoogleSTTResponse>(response);
@@ -204,8 +219,11 @@ public class VoiceOrderManager : MonoBehaviour
                     string transcript = sttResponse.results[0].alternatives[0].transcript;
                      
                     // 결과 텍스트를 UI에 표시
-                    resultText.text = $"\"{transcript}\"";
-                    statusText.text = "인식 성공!";
+                    resultText.text = $"나: {transcript}";
+                    statusText.text = "AI에게 전송 중...";
+
+                    // 변환된 텍스트를 로컬 파이썬 서버로 전송!
+                    StartCoroutine(SendToLocalServer(transcript));
                 }
                 else
                 {
@@ -218,14 +236,96 @@ public class VoiceOrderManager : MonoBehaviour
             {
                 // 요청 실패 시 (네트워크 오류, API 키 오류 등)
                 // 에러 메시지와 상세 응답 내용을 콘솔에 출력
-                Debug.LogError($"STT API Error: {request.error}\nResponse: {request.downloadHandler.text}");
-                statusText.text = "음성 인식 실패 (API 오류)";
-                resultText.text = $"Error: {request.error}";
+                Debug.LogError($"STT Error: {request.error}");
+                statusText.text = "음성 인식 실패";
             }
         }
     }
 
-    // --- JSON 데이터 클래스 (구글 응답용) ---
+    // 로컬 파이썬 서버(FastAPI)로 텍스트 전송
+    private IEnumerator SendToLocalServer(string userText)
+    {
+        // ---------------------------------------------------------------
+        // [1단계] 보낼 데이터 포장하기 (Request 준비)
+        // ---------------------------------------------------------------
+
+        // ChatRequest 객체를 생성합니다. 이 구조는 파이썬 서버의 Pydantic 모델과 일치해야 합니다.
+        ChatRequest chatReq = new ChatRequest
+        {
+            // session_id: 대화의 맥락(Context)을 유지하기 위한 핵심 키입니다.
+            // 첫 요청엔 빈 값("")이지만, 두 번째부터는 서버가 준 ID를 넣어서 "아까 그 사람이야"라고 알려줍니다.
+            session_id = currentSessionId,
+
+            // user_input: 사용자가 방금 말한 내용 (예: "메뉴 추천해줘")
+            user_input = userText
+        };
+
+        // C# 객체를 JSON 문자열로 변환합니다.
+        // 예시 결과: {"session_id": "abc-123", "user_input": "메뉴 추천해줘"}
+        string jsonBody = JsonUtility.ToJson(chatReq);
+
+        // ---------------------------------------------------------------
+        // [2단계] HTTP 요청 보내기 (Networking)
+        // ---------------------------------------------------------------
+
+        // POST 방식의 UnityWebRequest를 생성합니다. (주소: http://localhost:8000/chat)
+        using (UnityWebRequest request = new UnityWebRequest(localServerUrl, "POST"))
+        {
+            // 보낼 데이터(JSON 문자열)를 바이트 배열로 변환합니다. (네트워크 전송을 위해)
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
+
+            // UploadHandler: 데이터를 서버로 밀어 넣는 담당자
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+
+            // DownloadHandler: 서버가 주는 답장을 받아오는 담당자
+            request.downloadHandler = new DownloadHandlerBuffer();
+
+            // [중요] 헤더 설정: "내가 보내는 데이터는 JSON 형식이니까 그렇게 해석해!"라고 서버에 알림
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // 요청을 전송하고, 응답이 올 때까지 여기서 코루틴이 대기(yield)합니다.
+            yield return request.SendWebRequest();
+
+            // ---------------------------------------------------------------
+            // [3단계] 응답 처리하기 (Response Handling)
+            // ---------------------------------------------------------------
+
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                // 성공! 서버가 보낸 응답 텍스트(JSON)를 꺼냅니다.
+                // 예시: {"session_id": "abc-123", "reply": "발렌타인 디너는 어떠세요?"}
+                string responseJson = request.downloadHandler.text;
+                Debug.Log($"Server Response: {responseJson}");
+
+                // JSON 문자열을 다시 C# 객체(ChatResponse)로 변환(파싱)합니다.
+                ChatResponse chatRes = JsonUtility.FromJson<ChatResponse>(responseJson);
+
+                if (chatRes != null)
+                {
+                    // [매우 중요] 서버가 갱신해준 세션 ID를 저장합니다.
+                    // 다음번 요청 때 이 ID를 다시 보내야 AI가 대화를 기억할 수 있습니다.
+                    currentSessionId = chatRes.session_id;
+
+                    // UI에 AI의 답변을 표시합니다.
+                    resultText.text = $"AI: {chatRes.reply}";
+                    statusText.text = "답변 완료!";
+                }
+            }
+            else
+            {
+                // 실패! (서버가 꺼져있거나, 인터넷이 끊겼거나, 파이썬 코드 에러 등)
+                Debug.LogError($"Server Error: {request.error}");
+
+                // 사용자에게 에러 상황을 알립니다.
+                resultText.text = "서버 연결 실패. (server.py가 켜져 있나요?)";
+                statusText.text = "AI 통신 오류";
+            }
+        }
+    }
+
+    // --- JSON 데이터 클래스 ---
+
+    // 1. Google STT용
     [Serializable]
     public class GoogleSTTResponse
     {
@@ -243,5 +343,20 @@ public class VoiceOrderManager : MonoBehaviour
     {
         public string transcript; // 인식된 텍스트
         public float confidence;  // 신뢰도
+    }
+
+    // 2. 로컬 서버 통신용
+    [Serializable]
+    public class ChatRequest
+    {
+        public string session_id;
+        public string user_input;
+    }
+
+    [Serializable]
+    public class ChatResponse
+    {
+        public string session_id;
+        public string reply;
     }
 }
