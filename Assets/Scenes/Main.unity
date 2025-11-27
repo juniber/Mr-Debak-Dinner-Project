@@ -592,6 +592,7 @@ GameObject:
   - component: {fileID: 24229757}
   - component: {fileID: 24229758}
   - component: {fileID: 24229759}
+  - component: {fileID: 24229760}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -653,6 +654,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 31c66d38dc102fa40a15a709f49187be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OrderManager
+--- !u!114 &24229760
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 24229756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c921f14589b949445886b0f9a835e789, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AICommandBridge
 --- !u!1 &29228734
 GameObject:
   m_ObjectHideFlags: 0
@@ -8017,7 +8030,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 130, y: -0.10510254}
+  m_AnchoredPosition: {x: 130, y: -0.10498047}
   m_SizeDelta: {x: 260, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &503255779
@@ -16699,7 +16712,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 430, y: -0.10510254}
+  m_AnchoredPosition: {x: 430, y: -0.10498047}
   m_SizeDelta: {x: 260, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &924682873
@@ -35974,7 +35987,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 730, y: -0.10510254}
+  m_AnchoredPosition: {x: 730, y: -0.10498047}
   m_SizeDelta: {x: 260, y: 110}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1799690097
