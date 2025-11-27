@@ -6,8 +6,8 @@ using UnityEngine.Networking; // API 통신용
 using System;
 using System.Text;
 
-// 음성 주문 단계별 구현 - 2단계: STT (Speech-to-Text) 연동
-// 녹음된 음성을 Google Cloud STT API로 전송하고 텍스트 결과를 받는다. 
+// 음성 주문 단계별 구현 - 3단계: AI 서버 통신 및 명령 실행
+// STT로 변환된 텍스트를 로컬 FastAPI 서버로 보내고, AI의 답변과 명령을 처리 
 public class VoiceOrderManager : MonoBehaviour
 {
     [Header("UI Elements")]
@@ -249,18 +249,18 @@ public class VoiceOrderManager : MonoBehaviour
         // [1단계] 보낼 데이터 포장하기 (Request 준비)
         // ---------------------------------------------------------------
 
-        // ChatRequest 객체를 생성합니다. 이 구조는 파이썬 서버의 Pydantic 모델과 일치해야 합니다.
+        // ChatRequest 객체를 생성합니다. 이 구조는 파이썬 서버의 Pydantic 모델과 일치해야 한다. 
         ChatRequest chatReq = new ChatRequest
         {
-            // session_id: 대화의 맥락(Context)을 유지하기 위한 핵심 키입니다.
-            // 첫 요청엔 빈 값("")이지만, 두 번째부터는 서버가 준 ID를 넣어서 "아까 그 사람이야"라고 알려줍니다.
+            // session_id: 대화의 맥락(Context)을 유지하기 위한 핵심 키
+            // 첫 요청엔 빈 값("")이지만, 두 번째부터는 서버가 준 ID를 넣어서 "아까 그 사람이야"라고 알려준다.
             session_id = currentSessionId,
 
             // user_input: 사용자가 방금 말한 내용 (예: "메뉴 추천해줘")
             user_input = userText
         };
 
-        // C# 객체를 JSON 문자열로 변환합니다.
+        // C# 객체를 JSON 문자열로 변환
         // 예시 결과: {"session_id": "abc-123", "user_input": "메뉴 추천해줘"}
         string jsonBody = JsonUtility.ToJson(chatReq);
 
@@ -268,10 +268,10 @@ public class VoiceOrderManager : MonoBehaviour
         // [2단계] HTTP 요청 보내기 (Networking)
         // ---------------------------------------------------------------
 
-        // POST 방식의 UnityWebRequest를 생성합니다. (주소: http://localhost:8000/chat)
+        // POST 방식의 UnityWebRequest를 생성 (주소: http://localhost:8000/chat)
         using (UnityWebRequest request = new UnityWebRequest(localServerUrl, "POST"))
         {
-            // 보낼 데이터(JSON 문자열)를 바이트 배열로 변환합니다. (네트워크 전송을 위해)
+            // 보낼 데이터(JSON 문자열)를 바이트 배열로 변환 (네트워크 전송을 위해)
             byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonBody);
 
             // UploadHandler: 데이터를 서버로 밀어 넣는 담당자
@@ -292,23 +292,36 @@ public class VoiceOrderManager : MonoBehaviour
 
             if (request.result == UnityWebRequest.Result.Success)
             {
-                // 성공! 서버가 보낸 응답 텍스트(JSON)를 꺼냅니다.
+                // 성공! 서버가 보낸 응답 텍스트(JSON)를 꺼낸다.
                 // 예시: {"session_id": "abc-123", "reply": "발렌타인 디너는 어떠세요?"}
                 string responseJson = request.downloadHandler.text;
                 Debug.Log($"Server Response: {responseJson}");
 
-                // JSON 문자열을 다시 C# 객체(ChatResponse)로 변환(파싱)합니다.
+                // JSON 문자열을 다시 C# 객체(ChatResponse)로 변환(파싱)
                 ChatResponse chatRes = JsonUtility.FromJson<ChatResponse>(responseJson);
 
                 if (chatRes != null)
                 {
-                    // [매우 중요] 서버가 갱신해준 세션 ID를 저장합니다.
-                    // 다음번 요청 때 이 ID를 다시 보내야 AI가 대화를 기억할 수 있습니다.
+                    // [매우 중요] 서버가 갱신해준 세션 ID를 저장
+                    // 다음번 요청 때 이 ID를 다시 보내야 AI가 대화를 기억할 수 있다.
                     currentSessionId = chatRes.session_id;
 
                     // UI에 AI의 답변을 표시합니다.
                     resultText.text = $"AI: {chatRes.reply}";
                     statusText.text = "답변 완료!";
+
+                    // [핵심 기능] AI 행동(Action) 감지 및 실행
+                    // action이 있고, parameters 데이터가 존재할 경우 Bridge 호출
+                    if (!string.IsNullOrEmpty(chatRes.action) && chatRes.parameters != null)
+                    {
+                        Debug.Log($"AI 행동 감지: {chatRes.action}");
+
+                        // 파라미터 객체를 다시 JSON 문자열로 변환하여 Bridge에 전달
+                        // (AICommandBridge는 JSON 문자열을 받아서 처리하도록 설계됨)
+                        string paramJson = JsonUtility.ToJson(chatRes.parameters);
+
+                        AICommandBridge.Instance.ProcessAICommand(chatRes.action, paramJson);
+                    }
                 }
             }
             else
@@ -316,7 +329,7 @@ public class VoiceOrderManager : MonoBehaviour
                 // 실패! (서버가 꺼져있거나, 인터넷이 끊겼거나, 파이썬 코드 에러 등)
                 Debug.LogError($"Server Error: {request.error}");
 
-                // 사용자에게 에러 상황을 알립니다.
+                // 사용자에게 에러 상황을 알린다.
                 resultText.text = "서버 연결 실패. (server.py가 켜져 있나요?)";
                 statusText.text = "AI 통신 오류";
             }
@@ -358,5 +371,11 @@ public class VoiceOrderManager : MonoBehaviour
     {
         public string session_id;
         public string reply;
+        public string action;
+
+        // JsonUtility는 중첩 객체를 바로 Dictionary나 string으로 받기 어렵다.
+        // 따라서 AICommandBridge에 정의된 Wrapper 클래스 타입을 그대로 사용하여 파싱한다. 
+        public AICommandBridge.CommandListWrapper parameters;
     }
 }
+ 

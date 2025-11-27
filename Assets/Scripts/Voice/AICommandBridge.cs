@@ -84,9 +84,6 @@ public class AICommandBridge : MonoBehaviour
         {
             OrderManager.Instance.AddCourseToOrder(type);
             Debug.Log($"[AI Bridge] 코스 추가 성공: {type}");
-
-            // 화면 갱신을 위해(혹시 다른 화면에 있다면) 상세 패널로 이동
-            UIManager.Instance.ShowPanel("DinnerDetailPanel");
         }
         else
         {
@@ -184,13 +181,6 @@ public class AICommandBridge : MonoBehaviour
     {
         OrderManager.Instance.ClearOrder();
 
-        // UI 갱신: 장바구니 화면이라면 갱신 필요
-        var confirmMgr = FindAnyObjectByType<ConfirmOrderManager>();
-        if (confirmMgr != null)
-        {
-            // ConfirmOrderManager에 있는 초기화 로직을 간접 호출하거나 패널을 다시 엶
-            UIManager.Instance.ShowPanel("CustomerMainPanel");
-        }
         Debug.Log("[AI Bridge] 주문 초기화 완료");
     }
 
