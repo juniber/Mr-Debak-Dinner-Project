@@ -147,13 +147,32 @@ public class OrderManager : MonoBehaviour
     private async Task SubtractInventory(Order order)
     {
         Debug.Log("주문 확정: 재고 차감을 시작합니다...");
+
+        // 0. 인증 상태 확인 (가장 의심되는 부분)
+        if (auth.CurrentUser == null)
+        {
+            Debug.LogError("[치명적 오류] 재고 차감 시점에 로그인이 되어있지 않습니다!");
+            throw new Exception("User not authenticated");
+        }
+        else
+        {
+            Debug.Log($"[인증 확인] 사용자 ID: {auth.CurrentUser.UserId}");
+        }
+
         var totalCost = new Dictionary<string, long>();
         var addonCosts = MenuData.GetAddonCosts(); // 중앙 데이터 가져오기
 
         // 1. 장바구니의 모든 재료 소모량 계산
         foreach (var group in order.courseGroups)
         {
-            CourseType type = (CourseType)System.Enum.Parse(typeof(CourseType), group.courseType);
+            if (string.IsNullOrEmpty(group.courseType)) continue; // 안전 장치
+
+            // Enum 파싱 시도
+            if (!System.Enum.TryParse(group.courseType, out CourseType type))
+            {
+                Debug.LogWarning($"알 수 없는 코스 타입: {group.courseType}");
+                continue;
+            }
             var baseReqs = MenuData.GetCourseBaseRequirements(type);
 
             foreach (var detail in group.details)
@@ -172,6 +191,10 @@ public class OrderManager : MonoBehaviour
                     {
                         if (!totalCost.ContainsKey(costInfo.InventoryKey)) totalCost[costInfo.InventoryKey] = 0;
                         totalCost[costInfo.InventoryKey] += costInfo.Amount;
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"알 수 없는 추가 옵션 키: {addonKey}");
                     }
                 }
 
@@ -197,9 +220,9 @@ public class OrderManager : MonoBehaviour
 
             if (amountToSubtract <= 0) continue; // 0 이하면 차감할 필요 없음
 
-            DatabaseReference itemRef = dbReference.Child("inventory").Child(itemKey);
-
             Debug.Log($"[Transaction] {itemKey} 재고 {amountToSubtract} 차감 시도...");
+
+            DatabaseReference itemRef = dbReference.Child("inventory").Child(itemKey);
 
             // 각 재료 항목에 대해 개별 트랜잭션 실행
             Task transactionTask = itemRef.RunTransaction(data =>
@@ -208,15 +231,23 @@ public class OrderManager : MonoBehaviour
                 {
                     // DB에 해당 재고 항목이 없음. 오류로 중단.
                     Debug.LogWarning($"재고 차감 실패: {itemKey} 항목이 DB에 없습니다.");
-                    return TransactionResult.Abort();
+                    return TransactionResult.Success(data); // 멈추지 않고 넘어감
                 }
 
                 long currentStock = Convert.ToInt64(data.Value);
+                try
+                {
+                    currentStock = Convert.ToInt64(data.Value);
+                }
+                catch
+                {
+                    Debug.LogError($"[형변환 오류] {itemKey} 값: {data.Value}");
+                    return TransactionResult.Abort();
+                }
+
                 if (currentStock < amountToSubtract)
                 {
-                    // (중요) 재고 부족. 트랜잭션을 중단.
-                    // 이 중단은 Exception을 발생시켜 FinalizeAndSubmitOrder의 catch 블록으로 이동시킴.
-                    Debug.LogWarning($"재고 차감 실패(부족): {itemKey}. 필요: {amountToSubtract}, 현재: {currentStock}");
+                    Debug.LogWarning($"[재고 부족] {itemKey} (남음: {currentStock}, 필요: {amountToSubtract})");
                     return TransactionResult.Abort();
                 }
 
@@ -230,8 +261,15 @@ public class OrderManager : MonoBehaviour
 
         // 3. 모든 재고 차감 트랜잭션이 완료될 때까지 기다림
         // 만약 하나라도 Abort()되면, Task.WhenAll이 예외(DatabaseException)를 던집니다.
-        await Task.WhenAll(transactionTasks);
-
-        Debug.Log("모든 재고 차감 트랜잭션 완료.");
+        try
+        {
+            await Task.WhenAll(transactionTasks);
+            Debug.Log("모든 재고 차감 완료.");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[트랜잭션 실패] 상세 내용: {ex.ToString()}");
+            throw;
+        }
     }
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 
 // AI의 명령(JSON)을 해석하여 실제 게임 로직(OrderManager 등)을 실행하는 중계자
 public class AICommandBridge : MonoBehaviour
@@ -38,6 +39,11 @@ public class AICommandBridge : MonoBehaviour
 
                 if (commandList != null && commandList.commands != null)
                 {
+                    // ★ [핵심 수정] AI가 보내주는 JSON은 '누적된 전체 주문 내역'이므로,
+                    // 기존 장바구니를 비우고(Clear) 처음부터 다시 쌓아야(Rebuild) 중복을 막을 수 있습니다.
+                    Debug.Log("[AI Bridge] 주문 동기화를 위해 장바구니를 초기화합니다.");
+                    OrderManager.Instance.ClearOrder();
+
                     foreach (var cmd in commandList.commands)
                     {
                         ExecuteSingleCommand(cmd);
@@ -99,18 +105,15 @@ public class AICommandBridge : MonoBehaviour
         var detail = OrderManager.Instance.GetCurrentCourseDetailForEditing();
         if (detail == null)
         {
-            Debug.LogWarning("[AI Bridge] 수정할 코스가 없습니다. 코스를 먼저 추가했는지 확인하세요.");
+            Debug.LogWarning("[AI Bridge] 수정할 코스가 없습니다.");
             return;
         }
 
         // A. 스타일 변경 (예: "Grand")
-        if (!string.IsNullOrEmpty(styleName))
+        if (!string.IsNullOrEmpty(styleName) && Enum.TryParse(styleName, out StyleType style))
         {
-            if (Enum.TryParse(styleName, out StyleType style))
-            {
-                detail.style = style;
-                Debug.Log($"[AI Bridge] 스타일 변경: {style}");
-            }
+            detail.style = style;
+            Debug.Log($"[AI Bridge] 스타일 변경: {style}");
         }
 
         // B. 추가 항목 처리 (예: "AddSteak80g")
@@ -118,12 +121,9 @@ public class AICommandBridge : MonoBehaviour
         {
             foreach (var item in addItems)
             {
-                // 중복 추가 방지
                 if (!detail.addedItems.Contains(item))
-                {
                     detail.addedItems.Add(item);
-                    Debug.Log($"[AI Bridge] 옵션 추가: {item}");
-                }
+                Debug.Log($"[AI Bridge] 옵션 추가: {item}");
             }
         }
 
@@ -132,12 +132,9 @@ public class AICommandBridge : MonoBehaviour
         {
             foreach (var item in removeItems)
             {
-                // 중복 삭제 방지
                 if (!detail.removedItems.Contains(item))
-                {
                     detail.removedItems.Add(item);
-                    Debug.Log($"[AI Bridge] 옵션 삭제: {item}");
-                }
+                Debug.Log($"[AI Bridge] 옵션 삭제: {item}");
             }
         }
 
@@ -171,6 +168,10 @@ public class AICommandBridge : MonoBehaviour
         // 결제 로직 호출 (ConfirmOrderManager 기능 활용)
         // 실제 결제 버튼을 누른 것과 동일한 효과
         await OrderManager.Instance.FinalizeAndSubmitOrder(isReservation);
+
+        // [추가된 부분] 3초 대기: 사용자가 AI 답변을 읽거나 들을 시간을 줍니다.
+        Debug.Log("[AI Bridge] 3초 후 완료 화면으로 이동합니다...");
+        await Task.Delay(3000);
 
         // 완료 화면 표시
         UIManager.Instance.ShowPanel("OrderCompletePanel");

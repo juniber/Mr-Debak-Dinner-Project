@@ -5,6 +5,7 @@ using System.Collections;
 using UnityEngine.Networking; // API 통신용
 using System;
 using System.Text;
+using System.Collections.Generic;
 
 // 음성 주문 단계별 구현 - 3단계: AI 서버 통신 및 명령 실행
 // STT로 변환된 텍스트를 로컬 FastAPI 서버로 보내고, AI의 답변과 명령을 처리 
@@ -53,6 +54,8 @@ public class VoiceOrderManager : MonoBehaviour
 
         // 3. 버튼 리스너 연결
         if (recordButton != null) recordButton.onClick.AddListener(OnRecordButtonClicked);
+
+        // 닫기 버튼 클릭 시 세션 초기화
         if (closeButton != null) closeButton.onClick.AddListener(() => {
             StopAllCoroutines();
             if (isRecording) Microphone.End(microphoneDevice);
@@ -70,13 +73,9 @@ public class VoiceOrderManager : MonoBehaviour
 
         // 패널이 열릴 때마다 상태 메시지 리셋
         if (Microphone.devices.Length > 0)
-        {
             statusText.text = "버튼을 눌러 주문을 말씀해주세요.\n(최대 15초)";
-        }
         else
-        {
             statusText.text = "마이크를 찾을 수 없습니다.";
-        }
 
         if (resultText != null) resultText.text = "";
         isRecording = false;
@@ -91,14 +90,8 @@ public class VoiceOrderManager : MonoBehaviour
     // 녹음 버튼 클릭 시 호출
     private void OnRecordButtonClicked()
     {
-        if (!isRecording)
-        {
-            StartRecording();
-        }
-        else
-        {
-            StopRecording(); // 사용자가 15초 전에 버튼을 눌러 수동으로 멈출 때
-        }
+        if (!isRecording) StartRecording();
+        else StopRecording();
     }
 
     private void StartRecording()
@@ -124,10 +117,7 @@ public class VoiceOrderManager : MonoBehaviour
         yield return new WaitForSeconds(time);
 
         // 시간이 다 되었는데도 아직 녹음 중이라면 자동 중지
-        if (isRecording)
-        {
-            StopRecording();
-        }
+        if (isRecording) StopRecording();
     }
 
     private void StopRecording()
@@ -298,7 +288,8 @@ public class VoiceOrderManager : MonoBehaviour
                 Debug.Log($"Server Response: {responseJson}");
 
                 // JSON 문자열을 다시 C# 객체(ChatResponse)로 변환(파싱)
-                ChatResponse chatRes = JsonUtility.FromJson<ChatResponse>(responseJson);
+                // 로컬에 정의된 ServerResponse 클래스 사용
+                ServerResponse chatRes = JsonUtility.FromJson<ServerResponse>(responseJson);
 
                 if (chatRes != null)
                 {
@@ -312,13 +303,14 @@ public class VoiceOrderManager : MonoBehaviour
 
                     // [핵심 기능] AI 행동(Action) 감지 및 실행
                     // action이 있고, parameters 데이터가 존재할 경우 Bridge 호출
-                    if (!string.IsNullOrEmpty(chatRes.action) && chatRes.parameters != null)
+                    if (!string.IsNullOrEmpty(chatRes.action) && chatRes.parameters != null && chatRes.parameters.commands != null)
                     {
                         Debug.Log($"AI 행동 감지: {chatRes.action}");
 
                         // 파라미터 객체를 다시 JSON 문자열로 변환하여 Bridge에 전달
                         // (AICommandBridge는 JSON 문자열을 받아서 처리하도록 설계됨)
                         string paramJson = JsonUtility.ToJson(chatRes.parameters);
+                        Debug.Log($"[Bridge 전송 JSON]: {paramJson}");
 
                         AICommandBridge.Instance.ProcessAICommand(chatRes.action, paramJson);
                     }
@@ -336,46 +328,52 @@ public class VoiceOrderManager : MonoBehaviour
         }
     }
 
-    // --- JSON 데이터 클래스 ---
-
-    // 1. Google STT용
-    [Serializable]
-    public class GoogleSTTResponse
-    {
-        public STTResult[] results;
-    }
+    // --- 데이터 클래스 (VoiceOrderManager 내부 전용) ---
+    // AICommandBridge의 클래스를 쓰지 않고, 여기서 직접 정의해서 JsonUtility 오류를 방지합니다.
 
     [Serializable]
-    public class STTResult
-    {
-        public STTAlternative[] alternatives;
-    }
-
+    public class GoogleSTTResponse { public STTResult[] results; }
     [Serializable]
-    public class STTAlternative
-    {
-        public string transcript; // 인식된 텍스트
-        public float confidence;  // 신뢰도
-    }
+    public class STTResult { public STTAlternative[] alternatives; }
+    [Serializable]
+    public class STTAlternative { public string transcript; public float confidence; }
 
-    // 2. 로컬 서버 통신용
     [Serializable]
     public class ChatRequest
     {
         public string session_id;
-        public string user_input;
+        public string user_input; 
     }
 
+    // ★ 서버 응답 구조체 재정의 (중요)
     [Serializable]
-    public class ChatResponse
+    public class ServerResponse
     {
         public string session_id;
         public string reply;
         public string action;
+        public ParameterData parameters; // 아래 정의된 클래스 사용
+    }
 
-        // JsonUtility는 중첩 객체를 바로 Dictionary나 string으로 받기 어렵다.
-        // 따라서 AICommandBridge에 정의된 Wrapper 클래스 타입을 그대로 사용하여 파싱한다. 
-        public AICommandBridge.CommandListWrapper parameters;
+    // ★ parameters 내부 구조체 (중요)
+    // server.py가 {"commands": [...]} 형태로 보내므로 변수명 commands 일치 필수
+    [Serializable]
+    public class ParameterData
+    {
+        public List<CommandData> commands;
+    }
+
+    // ★ 개별 명령어 데이터
+    [Serializable]
+    public class CommandData
+    {
+        public string type;
+        public string course;
+        public string style;
+        public List<string> add;
+        public List<string> remove;
+        public bool is_reservation;
+        public string date;
     }
 }
  
