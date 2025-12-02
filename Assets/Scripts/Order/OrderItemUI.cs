@@ -26,21 +26,32 @@ public class OrderItemUI : MonoBehaviour
         StyleText.text = $"스타일: {detail.style.ToString()}";
 
         // 3. 추가/제외 목록 (요청사항: 2개 + "...")
-        var allOptions = new List<string>(detail.addedItems);
-        allOptions.AddRange(detail.removedItems);
+        List<string> optionList = new List<string>();
 
-        if (allOptions.Count == 0)
+        // 추가 항목 변환 (AddonKeys -> 한글)
+        foreach (string key in detail.addedItems)
+        {
+            optionList.Add(MenuData.GetAddonName(key) + " 추가");
+        }
+        // 제외 항목 변환 (AddonKeys -> 한글)
+        foreach (string key in detail.removedItems)
+        {
+            optionList.Add(MenuData.GetAddonName(key) + " 제외");
+        }
+
+        // 옵션 텍스트 설정 (2개만 표시 + "...")
+        if (optionList.Count == 0)
         {
             AddonsText.text = "기본 설정";
         }
-        else if (allOptions.Count <= 2)
+        else if (optionList.Count <= 2)
         {
-            AddonsText.text = string.Join(", ", allOptions);
+            AddonsText.text = string.Join(", ", optionList);
         }
         else
         {
             // 2개만 표시하고 "..." 추가
-            AddonsText.text = $"{allOptions[0]}, {allOptions[1]} ...";
+            AddonsText.text = $"{optionList[0]}, {optionList[1]} ...";
         }
 
         // 4. 이 코스 1개의 가격 계산

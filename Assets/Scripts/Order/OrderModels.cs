@@ -144,6 +144,57 @@ public static class MenuData
         }
         return null;
     }
+
+    public static string GetMenuName(string courseKey)
+    {
+        if (Enum.TryParse(courseKey, out CourseType type))
+        {
+            return GetMenuName(type);
+        }
+        return courseKey;
+    }
+
+    public static string GetMenuName(CourseType type)
+    {
+        switch (type)
+        {
+            case CourseType.ValentineDinner: return "발렌타인 디너";
+            case CourseType.FrenchDinner: return "프렌치 디너";
+            case CourseType.EnglishDinner: return "잉글리시 디너";
+            case CourseType.ChampagneFeastDinner: return "샴페인 축제 디너";
+            default: return type.ToString();
+        }
+    }
+
+    public static string GetAddonName(string key)
+    {
+        switch (key)
+        {
+            case AddonKeys.AddSteak80g: return "스테이크 80g";
+            case AddonKeys.AddSteak160g: return "스테이크 160g";
+            case AddonKeys.AddMiniCorn2P: return "미니 옥수수 2조각";
+            case AddonKeys.AddPotatoSalad180g: return "감자샐러드 180g";
+            case AddonKeys.AddSalad70g: return "샐러드 70g";
+            case AddonKeys.AddBacon18g: return "베이컨 18g";
+            case AddonKeys.AddScrambledEggs: return "에그 스크램블";
+            case AddonKeys.AddBaguette3P: return "바게트빵 3개";
+            case AddonKeys.AddBaguette6P: return "바게트빵 6개";
+            case AddonKeys.AddWineGlass: return "와인 1잔";
+            case AddonKeys.AddWineBottle: return "와인 1병";
+            case AddonKeys.AddCoffeeGlass: return "커피 1잔";
+            case AddonKeys.AddCoffeePot: return "커피 1포트";
+            case AddonKeys.AddChampagneBottle: return "샴페인 1병";
+
+            case AddonKeys.RemoveWine: return "와인";
+            case AddonKeys.RemoveCoffee: return "커피";
+            case AddonKeys.RemoveSalad: return "샐러드";
+            case AddonKeys.RemoveEggs: return "계란";
+            case AddonKeys.RemoveBacon: return "베이컨";
+            case AddonKeys.RemoveBaguette: return "바게트빵";
+
+            default: return key; // 매핑 없으면 키 그대로 반환
+        }
+    }
 }
 
 // 주문할 수 있는 코스의 종류
