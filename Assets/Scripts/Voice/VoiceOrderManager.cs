@@ -6,6 +6,8 @@ using UnityEngine.Networking; // API 통신용
 using System;
 using System.Text;
 using System.Collections.Generic;
+using Firebase.Database;
+using Firebase.Extensions;
 
 // 음성 주문 단계별 구현 - 3단계: AI 서버 통신 및 명령 실행
 // STT로 변환된 텍스트를 로컬 FastAPI 서버로 보내고, AI의 답변과 명령을 처리 
@@ -21,8 +23,8 @@ public class VoiceOrderManager : MonoBehaviour
     // ★ 중요: Google Cloud Console에서 발급받은 API 키를 인스펙터 창에서 입력
     public string googleApiKey = "";
 
-    // 로컬 파이썬 서버 주소
-    private string localServerUrl = "http://localhost:8000/chat";
+    // 로컬 파이썬 서버 주소 : Firebase에서 불러옴
+    private string localServerUrl = "";
     // 대화 맥락 유지를 위한 세션 ID
     private string currentSessionId = "";
 
@@ -31,7 +33,13 @@ public class VoiceOrderManager : MonoBehaviour
     private AudioClip recordedClip;
     private string microphoneDevice;
     private bool isRecording = false;
-    private float maxRecordingTime = 15.0f; // 최대 녹음 시간 5초
+    private float maxRecordingTime = 15.0f; // 최대 녹음 시간 15초
+
+    private DatabaseReference dbReference;
+
+    // 타이머 코루틴
+    private Coroutine stopRecordingCoroutine;
+    private float recordingStartTime;
 
     private void Awake()
     {
@@ -64,6 +72,8 @@ public class VoiceOrderManager : MonoBehaviour
             ResetSession();
             UIManager.Instance.ShowPanel("CustomerMainPanel");
         });
+
+        dbReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
     private void OnEnable()
@@ -72,10 +82,10 @@ public class VoiceOrderManager : MonoBehaviour
         ResetSession();
 
         // 패널이 열릴 때마다 상태 메시지 리셋
-        if (Microphone.devices.Length > 0)
-            statusText.text = "버튼을 눌러 주문을 말씀해주세요.\n(최대 15초)";
-        else
-            statusText.text = "마이크를 찾을 수 없습니다.";
+        if (recordButton != null) recordButton.interactable = false;
+        statusText.text = "서버 주소를 불러오는 중...";
+
+        FetchServerUrl(); // 주소 가져오기 시작
 
         if (resultText != null) resultText.text = "";
         isRecording = false;
@@ -85,6 +95,38 @@ public class VoiceOrderManager : MonoBehaviour
     private void ResetSession()
     {
         currentSessionId = ""; // ID를 공란으로 만듦 -> 서버는 새로운 대화로 인식함
+    }
+
+    // Firebase에서 ngrok 주소 가져오기
+    private void FetchServerUrl()
+    {
+        dbReference.Child("config").Child("ai_server_url").GetValueAsync().ContinueWithOnMainThread(task => {
+            if (task.IsFaulted)
+            {
+                Debug.LogError("서버 주소 로드 실패: " + task.Exception);
+                statusText.text = "서버 연결 정보를 가져오지 못했습니다.";
+                return;
+            }
+
+            if (task.Result.Exists)
+            {
+                // DB에서 URL 가져오기
+                localServerUrl = task.Result.Value.ToString();
+                Debug.Log($"[VoiceOrderManager] 서버 주소 업데이트 완료: {localServerUrl}");
+
+                // 주소 로드 성공 시 버튼 활성화
+                if (recordButton != null && Microphone.devices.Length > 0)
+                {
+                    recordButton.interactable = true;
+                    statusText.text = "버튼을 눌러 주문을 말씀해주세요.\n(최대 15초)";
+                }
+            }
+            else
+            {
+                Debug.LogError("DB에 'config/ai_server_url' 경로가 없습니다.");
+                statusText.text = "서버 설정이 없습니다.";
+            }
+        });
     }
 
     // 녹음 버튼 클릭 시 호출
@@ -98,17 +140,26 @@ public class VoiceOrderManager : MonoBehaviour
     {
         if (isRecording) return;
 
+        // 1. 기존에 돌고 있던 타이머나 코루틴이 있다면 확실하게 제거
+        if (stopRecordingCoroutine != null)
+        {
+            StopCoroutine(stopRecordingCoroutine);
+            stopRecordingCoroutine = null;
+        }
+        StopAllCoroutines(); // 혹시 모를 다른 코루틴도 정리
+
         isRecording = true;
+        recordingStartTime = Time.time;
         statusText.text = "듣고 있어요... (말씀하세요)";
         resultText.text = "녹음 중...";
 
-        // 녹음 시작 (최대 5초, 44100Hz)
-        // 중요: loop를 false로 해도 Unity 마이크는 시간이 지나면 녹음을 멈추지 않고 덮어쓴다.
-        // 따라서 코루틴으로 시간을 재서 수동으로 멈춰줘야 한다.
+        // 2. 마이크 시작 (44100 권장)
+        // 기존 클립이 있다면 null로 밀어버리고 새로 할당 (메모리 정리)
+        if (recordedClip != null) Destroy(recordedClip);
         recordedClip = Microphone.Start(microphoneDevice, false, (int)maxRecordingTime, 44100);
 
-        // 최대 시간이 지나면 자동으로 멈추도록 코루틴 시작
-        StartCoroutine(StopRecordingAfterTime(maxRecordingTime));
+        // 3. 새 타이머 시작하고 변수에 저장 (나중에 끄기 위해)
+        stopRecordingCoroutine = StartCoroutine(StopRecordingAfterTime(maxRecordingTime));
     }
 
     // 최대 시간이 지나면 자동으로 녹음 중지
@@ -124,13 +175,34 @@ public class VoiceOrderManager : MonoBehaviour
     {
         if (!isRecording) return;
 
+        // 1초 미만 녹음 방지 (터치 실수 방지)
+        if (Time.time - recordingStartTime < 1.0f)
+        {
+            Debug.Log("녹음이 너무 짧아서 무시합니다.");
+            // 타이머 취소 후 초기화
+            if (stopRecordingCoroutine != null) StopCoroutine(stopRecordingCoroutine);
+            Microphone.End(microphoneDevice);
+            isRecording = false;
+            statusText.text = "너무 짧습니다. 다시 눌러주세요.";
+            return;
+        }
+
+        // 정상 종료 프로세스
         isRecording = false;
+
+        // 돌고 있던 타이머 강제 종료 (매우 중요!)
+        if (stopRecordingCoroutine != null)
+        {
+            StopCoroutine(stopRecordingCoroutine);
+            stopRecordingCoroutine = null;
+        }
+
         Microphone.End(microphoneDevice); // 녹음 하드웨어 중지
         statusText.text = "음성 인식 중...";  
 
         // 녹음된 데이터 처리
         ProcessRecordedAudio();
-    } 
+    }
 
     private void ProcessRecordedAudio()
     {
@@ -154,6 +226,17 @@ public class VoiceOrderManager : MonoBehaviour
         // API 키를 쿼리 파라미터로 전달하여 인증
         string url = $"https://speech.googleapis.com/v1/speech:recognize?key={googleApiKey}";
 
+        // STT 인식률 향상을 위한 힌트 단어들
+        // 발음이 뭉개져도 이 단어들 위주로 인식하게 유도함
+        string[] phrases = new string[] {
+            "샴페인", "1병", "한 병", "추가", "발렌타인", "프렌치", "잉글리시",
+            "디너", "스테이크", "와인", "커피", "샐러드", "바게트", "빵",
+            "베이컨", "에그", "스크램블", "옥수수", "감자"
+        };
+
+        // 배열을 JSON 문자열 포맷으로 변환 ("단어1", "단어2", ...)
+        string phraseHints = string.Join("\", \"", phrases);
+
         // 2. JSON 요청 본문 생성
         // API에 보낼 데이터(설정 정보 및 오디오 데이터)를 JSON 형식으로 만든다.
         // - config: 오디오 파일의 형식과 언어 설정
@@ -163,12 +246,18 @@ public class VoiceOrderManager : MonoBehaviour
         //   - model: 사용할 인식 모델. 'default'는 일반적인 음성 인식에 사용
         // - audio: 변환할 오디오 데이터
         //   - content: Base64 문자열로 인코딩된 오디오 데이터 자체
+        // speechContexts에 phrases 추가
         string jsonBody = $@"{{
             ""config"": {{
                 ""encoding"": ""LINEAR16"",
-                ""sampleRateHertz"": 44100,
+                ""sampleRateHertz"": 44100, 
                 ""languageCode"": ""ko-KR"",
-                ""model"": ""default""
+                ""model"": ""default"",
+                ""speechContexts"": [
+                    {{
+                        ""phrases"": [""{phraseHints}""]
+                    }}
+                ]
             }},
             ""audio"": {{
                 ""content"": ""{base64Audio}""
@@ -235,6 +324,14 @@ public class VoiceOrderManager : MonoBehaviour
     // 로컬 파이썬 서버(FastAPI)로 텍스트 전송
     private IEnumerator SendToLocalServer(string userText)
     {
+        // URL이 비어있으면 전송하지 않음
+        if (string.IsNullOrEmpty(localServerUrl))
+        {
+            Debug.LogError("서버 URL이 설정되지 않았습니다.");
+            statusText.text = "서버 주소 오류";
+            yield break;
+        }
+
         // ---------------------------------------------------------------
         // [1단계] 보낼 데이터 포장하기 (Request 준비)
         // ---------------------------------------------------------------
@@ -272,6 +369,10 @@ public class VoiceOrderManager : MonoBehaviour
 
             // [중요] 헤더 설정: "내가 보내는 데이터는 JSON 형식이니까 그렇게 해석해!"라고 서버에 알림
             request.SetRequestHeader("Content-Type", "application/json");
+
+            // 타임아웃 시간을 90초(1분 30초)로 넉넉하게 설정
+            // AI가 생각하는 시간이 길어지면 모바일에서 끊길 수 있음
+            request.timeout = 90;
 
             // 요청을 전송하고, 응답이 올 때까지 여기서 코루틴이 대기(yield)합니다.
             yield return request.SendWebRequest();
