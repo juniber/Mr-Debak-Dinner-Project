@@ -104,4 +104,22 @@ public class UIManager : MonoBehaviour
         StopCoroutine("ShowTemporaryStatusMessageCoroutine");
         StartCoroutine(ShowTemporaryStatusMessageCoroutine(message, delay, index));
     }
+
+    public void ShowPanel(string panelName, object data)
+    {
+        ShowPanel(panelName);
+
+        if (panelDictionary.TryGetValue(panelName, out GameObject activePanel))
+        {
+            switch (panelName)
+            {
+                case "SOrderConfirmPanel": // 상세 보기 패널인 경우
+                    if (data is Order orderData) // 데이터가 Order 타입인지 확인
+                    {
+                        activePanel.GetComponent<StaffOrderConfirmUI>().Open(orderData);
+                    }
+                    break;
+            }
+        }
+    }
 }

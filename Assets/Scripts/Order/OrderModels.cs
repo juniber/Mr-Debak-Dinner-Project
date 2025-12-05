@@ -223,7 +223,8 @@ public enum OrderStatus
     Confirmed,   // 2 (즉시 주문 확정 상태)
     Cooking,     // 3 (조리 중)
     Delivering,  // 4 (배달 중)
-    Completed    // 5 (배달 완료)
+    Completed,   // 5 (배달 완료)
+    Canceled     // 6 (취소 됨) -> 251205 추가
 }
 
 // 각 코스별 상세 설정 (스타일, 요청사항 등)
