@@ -3,22 +3,23 @@ using UnityEngine.UI;
 using Firebase.Database;
 using System.Collections.Generic;
 using System;
+using System.Threading.Tasks;
 
 public class SMenuSettingPanel : MonoBehaviour
 {
-    [Header("Containers (ContentPanel)")]
-    [SerializeField] private Transform addonsContainer;   // AddonsPanel > ContentPanel
-    [SerializeField] private Transform coursesContainer;  // CoursesPanel > ContentPanel
-    [SerializeField] private Transform stylesContainer;   // StylesPanel > ContentPanel
+    [Header("Containers")]
+    [SerializeField] private Transform addonsContainer;
+    [SerializeField] private Transform coursesContainer;
+    [SerializeField] private Transform stylesContainer;
 
     [Header("Prefab")]
-    [SerializeField] private GameObject menuSlotPrefab;   // StaffMenuPrefab
+    [SerializeField] private GameObject menuSlotPrefab;
 
     [Header("Buttons")]
     [SerializeField] private Button backspaceBtn;
 
     private DatabaseReference dbReference;
-    // DB에서 가져온 가격표를 임시 저장 (Key: 메뉴키, Value: 가격)
+    // 가격 캐싱 (Key: 메뉴키, Value: 가격)
     private Dictionary<string, int> currentPriceList = new Dictionary<string, int>();
 
     private void Awake()
@@ -37,114 +38,125 @@ public class SMenuSettingPanel : MonoBehaviour
         LoadMenuPrices();
     }
 
-    // --- 1. 가격 데이터 가져오기 & 리스트 생성 ---
+    // --- 1. 가격 데이터 가져오기 (폴더 구조 대응) ---
     private async void LoadMenuPrices()
     {
-        // 1. Firebase에서 priceList 전체 가져오기
         var snapshot = await dbReference.Child("priceList").GetValueAsync();
 
         currentPriceList.Clear();
+
         if (snapshot.Exists)
         {
-            foreach (var child in snapshot.Children)
+            foreach (var category in snapshot.Children)
             {
-                int price = 0;
-                if (child.Value != null) int.TryParse(child.Value.ToString(), out price);
-                currentPriceList[child.Key] = price;
+                // DB 구조가 priceList -> addons -> Key:Value 형태라면
+                // category.Key는 "addons", "courses" 등이 됨
+
+                // 1. 폴더 안에 있는 아이템들 순회
+                if (category.HasChildren)
+                {
+                    foreach (var item in category.Children)
+                    {
+                        int price = 0;
+                        if (item.Value != null) int.TryParse(item.Value.ToString(), out price);
+                        currentPriceList[item.Key] = price;
+
+                        // 디버깅용 로그
+                        // Debug.Log($"[가격 로드] {category.Key}/{item.Key} : {price}");
+                    }
+                }
+                // 2. 혹시 폴더 없이 바로 들어있는 아이템이 있다면 처리
+                else
+                {
+                    int price = 0;
+                    if (category.Value != null) int.TryParse(category.Value.ToString(), out price);
+                    currentPriceList[category.Key] = price;
+                }
             }
         }
 
-        // 2. UI 초기화 (기존 목록 삭제)
+        // UI 갱신
         ClearContainer(addonsContainer);
         ClearContainer(coursesContainer);
         ClearContainer(stylesContainer);
 
-        // 3. 카테고리별로 슬롯 생성
         CreateCourseSlots();
         CreateStyleSlots();
         CreateAddonSlots();
     }
 
-    // [코스] 목록 생성
+    // --- 2. 목록 생성 로직 (기존과 동일) ---
     private void CreateCourseSlots()
     {
-        // Enum 순회
         foreach (CourseType type in Enum.GetValues(typeof(CourseType)))
         {
             string key = type.ToString();
-            string name = MenuData.GetMenuName(type); // 한글 이름
+            string name = MenuData.GetMenuName(type);
             int price = GetPriceFromCache(key);
-
-            CreateSlot(key, name, price, coursesContainer);
+            CreateSlot(key, name, price, coursesContainer, "courses"); // 카테고리 전달
         }
     }
 
-    // [스타일] 목록 생성
     private void CreateStyleSlots()
     {
         foreach (StyleType type in Enum.GetValues(typeof(StyleType)))
         {
-            if (type == StyleType.None) continue; // None은 제외
-
+            if (type == StyleType.None) continue;
             string key = type.ToString();
-            string name = key; // 스타일은 별도 한글 변환 없으면 영문 그대로
+            string name = key;
             int price = GetPriceFromCache(key);
-
-            CreateSlot(key, name, price, stylesContainer);
+            CreateSlot(key, name, price, stylesContainer, "styles"); // 카테고리 전달
         }
     }
 
-    // [추가옵션] 목록 생성
     private void CreateAddonSlots()
     {
-        // MenuData.GetAddonCosts()의 키들을 가져옴
         var addonDict = MenuData.GetAddonCosts();
         foreach (var kvp in addonDict)
         {
             string key = kvp.Key;
-            string name = MenuData.GetAddonName(key); // 한글 이름
+            string name = MenuData.GetAddonName(key);
             int price = GetPriceFromCache(key);
-
-            CreateSlot(key, name, price, addonsContainer);
+            CreateSlot(key, name, price, addonsContainer, "addons"); // 카테고리 전달
         }
     }
 
-    // 공통 슬롯 생성 함수
-    private void CreateSlot(string key, string name, int price, Transform parent)
+    // 슬롯 생성 (카테고리 정보를 람다식에 포함)
+    private void CreateSlot(string key, string name, int price, Transform parent, string category)
     {
         GameObject go = Instantiate(menuSlotPrefab, parent);
         var slotUI = go.GetComponent<StaffMenuSlotUI>();
-        slotUI.Setup(key, name, price, OnPriceUpdate);
-    }
 
-    // --- 2. 가격 변경 (Firebase 저장) ---
-    private void OnPriceUpdate(string key, int newPrice)
-    {
-        Debug.Log($"가격 변경 시도: {key} -> {newPrice:N0}원");
-
-        // priceList/{key} 경로에 값 저장
-        dbReference.Child("priceList").Child(key).SetValueAsync(newPrice).ContinueWith(task =>
+        // 변경 시 category 정보도 함께 넘겨서 올바른 폴더에 저장하게 함
+        slotUI.Setup(key, name, price, (targetKey, newPrice) =>
         {
-            if (task.IsCompleted)
-            {
-                UnityMainThreadDispatcher.Instance().Enqueue(() =>
-                {
-                    Debug.Log("가격 변경 완료");
-                    UIManager.Instance.ShowTemporaryStatus("가격이 변경되었습니다.", 1f);
-
-                    // 로컬 캐시 업데이트 후 UI 갱신 (전체 리로드 대신 해당 슬롯만 갱신하면 좋지만, 
-                    // 간단하게 전체 리로드로 처리)
-                    LoadMenuPrices();
-                });
-            }
-            else
-            {
-                Debug.LogError($"가격 변경 실패: {task.Exception}");
-            }
+            UpdatePriceInFirebase(category, targetKey, newPrice);
         });
     }
 
-    // 캐시에서 가격 찾기 (없으면 0)
+    // --- 3. 가격 저장 (올바른 폴더 위치에 저장) ---
+    private void UpdatePriceInFirebase(string category, string key, int newPrice)
+    {
+        Debug.Log($"가격 저장: priceList/{category}/{key} -> {newPrice}");
+
+        // 예: priceList/addons/AddBacon18g 경로에 저장
+        dbReference.Child("priceList").Child(category).Child(key).SetValueAsync(newPrice)
+            .ContinueWith(task =>
+            {
+                if (task.IsCompleted)
+                {
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        UIManager.Instance.ShowTemporaryStatus("가격이 변경되었습니다.", 1f);
+                        // 캐시 즉시 업데이트 (리로드 없이 반영)
+                        currentPriceList[key] = newPrice;
+                        // 필요하면 LoadMenuPrices() 호출해서 전체 갱신
+                        // LoadMenuPrices(); 
+                    });
+                }
+            });
+    }
+
     private int GetPriceFromCache(string key)
     {
         return currentPriceList.ContainsKey(key) ? currentPriceList[key] : 0;

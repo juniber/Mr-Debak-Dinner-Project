@@ -5,10 +5,10 @@ using TMPro;
 public class StaffMenuSlotUI : MonoBehaviour
 {
     [Header("UI Components")]
-    [SerializeField] private TextMeshProUGUI nameText;       // 메뉴 이름
-    [SerializeField] private TMP_InputField priceInput;      // 가격 입력 필드
-    [SerializeField] private TextMeshProUGUI placeholderText;// ★ 여기에 Placeholder 텍스트 컴포넌트를 연결해야 함
-    [SerializeField] private Button changeBtn;               // 변경 버튼
+    [SerializeField] private TextMeshProUGUI nameText;
+    [SerializeField] private TMP_InputField priceInput;
+    // PlaceholderText 변수는 이제 필요 없지만, 연결되어 있어도 상관없습니다.
+    [SerializeField] private Button changeBtn;
 
     private string menuKey;
     private System.Action<string, int> onChangeCallback;
@@ -18,31 +18,32 @@ public class StaffMenuSlotUI : MonoBehaviour
         this.menuKey = key;
         this.onChangeCallback = onChange;
 
-        // 1. 이름 표시
+        // 1. 데이터 확인 로그 (콘솔창 확인용)
+        // 만약 여기서 price가 0으로 찍히면, DB에서 데이터를 못 가져온 것입니다.
+        Debug.Log($"[UI 설정] 메뉴: {displayName} / 키: {key} / 가격: {currentPrice}");
+
+        // 2. 이름 설정
         if (nameText) nameText.text = displayName;
 
-        // 2. ★ [핵심] InputField 초기화 (비워야 Placeholder가 보임)
+        // 3. InputField 및 Placeholder 설정
         if (priceInput)
         {
+            // 텍스트를 비워야 Placeholder가 보입니다.
             priceInput.text = "";
             priceInput.contentType = TMP_InputField.ContentType.IntegerNumber;
-        }
 
-        // 3. ★ [핵심] Placeholder에 현재 가격 넣기
-        string priceStr = $"{currentPrice:N0}"; // "10,000" 형식
-
-        // A. 인스펙터에 연결된 변수 우선 사용
-        if (placeholderText != null)
-        {
-            placeholderText.text = priceStr;
-        }
-        // B. 연결 안 되어 있으면 InputField 설정에서 찾기
-        else if (priceInput != null && priceInput.placeholder != null)
-        {
-            var placeholderTMP = priceInput.placeholder as TextMeshProUGUI;
-            if (placeholderTMP != null)
+            // ★ [핵심 수정] InputField가 알고 있는 Placeholder 컴포넌트를 직접 가져옵니다.
+            // 인스펙터 연결 실수를 방지하는 가장 확실한 방법입니다.
+            if (priceInput.placeholder != null)
             {
-                placeholderTMP.text = priceStr;
+                TextMeshProUGUI placeholderTMP = priceInput.placeholder.GetComponent<TextMeshProUGUI>();
+                if (placeholderTMP != null)
+                {
+                    placeholderTMP.text = $"{currentPrice:N0}"; // "10,000"
+
+                    // 혹시 색상이 투명하거나 안 보일 수 있으니 강제로 잘 보이는 색 설정 (선택사항)
+                    // placeholderTMP.color = new Color(0.5f, 0.5f, 0.5f, 1f); // 회색
+                }
             }
         }
 
@@ -61,7 +62,14 @@ public class StaffMenuSlotUI : MonoBehaviour
             if (newPrice >= 0)
             {
                 onChangeCallback?.Invoke(menuKey, newPrice);
-                priceInput.text = ""; // 변경 후 비우기
+                priceInput.text = ""; // 변경 후 비우기 -> 다시 Placeholder 보임
+
+                // 변경된 가격을 즉시 Placeholder에 반영 (UX 향상)
+                if (priceInput.placeholder != null)
+                {
+                    var ph = priceInput.placeholder.GetComponent<TextMeshProUGUI>();
+                    if (ph) ph.text = $"{newPrice:N0}";
+                }
             }
             else
             {
