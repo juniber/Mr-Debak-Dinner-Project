@@ -1,7 +1,8 @@
+using Firebase.Auth; // 로그아웃/탈퇴용
+using Firebase.Database;
+using System.Threading.Tasks; // 비동기 처리용
 using UnityEngine;
 using UnityEngine.UI;
-using Firebase.Auth; // 로그아웃/탈퇴용
-using System.Threading.Tasks; // 비동기 처리용
 
 public class StaffSelfService : MonoBehaviour
 {
@@ -17,6 +18,7 @@ public class StaffSelfService : MonoBehaviour
     [SerializeField] private Button logoutBtn;         // 로그아웃
     [SerializeField] private Button deleteAccountBtn;  // 회원탈퇴
 
+    [SerializeField] private GameObject menuPanel;
     private void Start()
     {
         // 버튼 리스너 연결
@@ -58,38 +60,50 @@ public class StaffSelfService : MonoBehaviour
     {
         Debug.Log("로그아웃 시도...");
         FirebaseAuth.DefaultInstance.SignOut(); // Firebase 로그아웃
+        
+        if(menuPanel.activeSelf)
+            menuPanel.SetActive(false);
 
         // 로그인 화면으로 강제 이동
         UIManager.Instance.ShowPanel("LoginPanel");
         Debug.Log("로그아웃 완료. 로그인 화면으로 이동합니다.");
     }
 
-    // [회원탈퇴] - 주의: 실제 앱에서는 "정말 탈퇴하시겠습니까?" 팝업을 띄워야 합니다.
+    // [회원탈퇴]
     private void OnDeleteAccountClicked()
     {
+        if (menuPanel.activeSelf)
+            menuPanel.SetActive(false);
+
         FirebaseUser user = FirebaseAuth.DefaultInstance.CurrentUser;
         if (user != null)
         {
-            // 계정 삭제 비동기 호출
-            user.DeleteAsync().ContinueWith(task =>
+            string uid = user.UserId;
+            DatabaseReference dbRef = FirebaseDatabase.DefaultInstance.RootReference;
+
+            dbRef.Child("users").Child(uid).RemoveValueAsync().ContinueWith(dbTask =>
             {
-                if (task.IsCanceled)
+                if (dbTask.IsFaulted)
                 {
-                    Debug.LogError("회원탈퇴 취소됨");
-                    return;
-                }
-                if (task.IsFaulted)
-                {
-                    Debug.LogError($"회원탈퇴 실패: {task.Exception}");
-                    // 오래된 로그인 세션이면 "재로그인 필요" 에러가 날 수 있음
+                    Debug.LogError($"DB 삭제 실패 (권한 문제 등): {dbTask.Exception}");
                     return;
                 }
 
-                // 성공 시 메인 스레드에서 로그인 화면으로 이동해야 함 (유니티 UI 제약)
-                UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                Debug.Log("DB 데이터 삭제 완료. 이제 인증 계정을 삭제합니다.");
+
+                user.DeleteAsync().ContinueWith(authTask =>
                 {
-                    Debug.Log("회원탈퇴 성공! 안녕히 가세요.");
-                    UIManager.Instance.ShowPanel("LoginPanel");
+                    if (authTask.IsCanceled || authTask.IsFaulted)
+                    {
+                        Debug.LogError("계정 삭제 실패 (재로그인 필요할 수 있음)");
+                        return;
+                    }
+
+                    UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                    {
+                        Debug.Log("직원 탈퇴 완료.");
+                        UIManager.Instance.ShowPanel("LoginPanel");
+                    });
                 });
             });
         }

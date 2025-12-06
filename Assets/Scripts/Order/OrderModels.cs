@@ -1,5 +1,7 @@
+using Firebase.Database;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 // Firebase DB에서 재고(inventory) 키 이름들을 상수로 관리
 public static class InventoryKeys
@@ -305,6 +307,9 @@ public class Order
     // 🔹 쿠폰 리스트 (여러 개를 지원하고 싶으면 리스트, 지금은 보통 1개만 사용)
     public List<Coupon> coupons;
 
+    public string deliveryAddress; // 배달 주소 (주문 생성 시 UserDB에서 복사해와야 함)
+    public string riderId;         // 배달 기사 UID (비어있으면 아직 배차 안 됨)
+
     public Order(string userId)
     {
         this.userId = userId;
@@ -319,6 +324,7 @@ public class Order
         this.coupons = new List<Coupon>();
         this.orderTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
+
 
     // 코스 하나를 추가
     public void AddCourse(CourseType type)

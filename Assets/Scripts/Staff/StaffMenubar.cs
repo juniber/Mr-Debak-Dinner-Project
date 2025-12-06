@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -8,7 +9,7 @@ public class StaffMenubar : MonoBehaviour
     [SerializeField] private Button orderBtn;      // 주문관리 버튼
     [SerializeField] private Button selfBtn;       // 셀프 버튼
 
-    [SerializeField] private static string currentPanel = "StaffMain";
+    [SerializeField] private static string currentPanel = "StaffMainPanel";
     [SerializeField] private static string prevPanel = "";
 
     private void Start()
@@ -28,22 +29,22 @@ public class StaffMenubar : MonoBehaviour
 
     private void OnHomeClicked()
     {
-        currentPanel = "StaffMainPanel";
         prevPanel = currentPanel;
+        currentPanel = "StaffMainPanel";
         UIManager.Instance.ShowPanel("StaffMainPanel");
     }
 
     private void OnOrderClicked()
     {
-        currentPanel = "SOrderManagePanel";
         prevPanel = currentPanel;
+        currentPanel = "SOrderManagePanel";
         UIManager.Instance.ShowPanel("SOrderManagePanel");
     }
 
     private void OnSelfClicked()
     {
-        currentPanel = "SSelfServicePanel";
         prevPanel = currentPanel;
+        currentPanel = "SSelfServicePanel";
         UIManager.Instance.ShowPanel("SSelfServicePanel");
     }
 
@@ -52,4 +53,6 @@ public class StaffMenubar : MonoBehaviour
         prevPanel = currentPanel;
         currentPanel = currrent;
     }
+
+    public static string GetPrev() { return prevPanel; }
 }

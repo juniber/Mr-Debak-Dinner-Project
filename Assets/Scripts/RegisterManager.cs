@@ -50,6 +50,7 @@ public class RegisterManager : MonoBehaviour
 
 
         string role = staffToggle.isOn ? "Staff" : "Customer"; // 토글 선택에 따라 역할 결정
+        string jobType = staffToggle.isOn ? "Kitchen" : "";
 
         // 입력값 유효성 검사
         if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
@@ -60,11 +61,11 @@ public class RegisterManager : MonoBehaviour
 
         // 회원가입 처리 시작
         statusText.text = "회원가입 진행 중...";
-        _= RegisterUserAsync(emailForFirebase, password, role, name, phoneNumber);
+        _= RegisterUserAsync(emailForFirebase, password, role, name, phoneNumber, jobType);
     }
 
     // 실제 Firebase 회원가입 및 데이터 저장을 처리하는 비동기 함수
-    private async Task RegisterUserAsync(string email, string password, string role, string name, string phone)
+    private async Task RegisterUserAsync(string email, string password, string role, string name, string phone, string jobType)
     {
         try
         {
@@ -74,7 +75,7 @@ public class RegisterManager : MonoBehaviour
             Debug.Log($"사용자 생성 완료 : {newUser.Email} ({newUser.UserId})");
 
             // 2. Realtime Database UserProfile 객체 생성
-            UserProfile userProfile = new UserProfile(role, name, phone);
+            UserProfile userProfile = new UserProfile(role, name, phone, jobType);
             string json = JsonUtility.ToJson(userProfile);
 
             // 생성된 사용자의 고유 ID(UserId를 키(Key)로 사용하여 데이터를 저장

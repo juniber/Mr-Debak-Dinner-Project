@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using Firebase.Database;
 using System.Threading.Tasks;
+using UnityEngine.UI;
 
 public class StaffOrderManagerUI : MonoBehaviour
 {
@@ -12,12 +13,22 @@ public class StaffOrderManagerUI : MonoBehaviour
 
     [SerializeField] private StaffOrderConfirmUI detailPanel;
 
+    [SerializeField] private Button backBtn;
+
     private DatabaseReference dbReference;
 
     private void OnEnable()
     {
         // 패널이 켜질 때마다 새로고침
         if (dbReference != null) RefreshOrders();
+
+        backBtn.onClick.RemoveAllListeners();
+        backBtn.onClick.AddListener(OnEnterPanelBackSpaceBtn);
+    }
+
+    private void OnEnterPanelBackSpaceBtn()
+    {
+        UIManager.Instance.ShowPanel(StaffMenubar.GetPrev());
     }
 
     private void Start()

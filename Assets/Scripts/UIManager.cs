@@ -119,6 +119,13 @@ public class UIManager : MonoBehaviour
                         activePanel.GetComponent<StaffOrderConfirmUI>().Open(orderData);
                     }
                     break;
+
+                case "SWorkerManagePanel":
+                    if (data is StaffData staffData)
+                    {
+                        activePanel.GetComponent<StaffWorkerManageUI>().Open(staffData);
+                    }
+                    break;
             }
         }
     }

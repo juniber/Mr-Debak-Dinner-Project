@@ -8,6 +8,8 @@ public class StaffData
     public string name;         // 이름
     public string status;       // 근무 상태
     public string role;         // 역할
+    public string jobType;
+    public string phone;        // 전화번호 (프리팹에 표시용)
     // 프로필 이미지는 추후 추가
 }
 

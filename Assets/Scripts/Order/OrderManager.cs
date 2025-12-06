@@ -112,6 +112,17 @@ public class OrderManager : MonoBehaviour
         CurrentOrder.orderTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         CurrentOrder.isReservation = isReservation;
 
+        if (auth.CurrentUser != null)
+        {
+            string address = await FetchUserAddress(auth.CurrentUser.UserId);
+            CurrentOrder.deliveryAddress = address;
+            Debug.Log($"[OrderManager] 배달 주소 설정됨: {address}");
+        }
+        else
+        {
+            CurrentOrder.deliveryAddress = "주소 정보 없음 (비로그인)";
+        }
+
         // 2. ��� ���� (��� �ֹ��� ��쿡��)
         try
         {
@@ -271,5 +282,24 @@ public class OrderManager : MonoBehaviour
             Debug.LogError($"[Ʈ����� ����] �� ����: {ex.ToString()}");
             throw;
         }
+    }
+    
+    private async Task<string> FetchUserAddress(string userId)
+    {
+        try
+        {
+            var snapshot = await dbReference.Child("users").Child(userId).Child("address").GetValueAsync();
+
+            if (snapshot.Exists && snapshot.Value != null)
+            {
+                string addr = snapshot.Value.ToString();
+                return string.IsNullOrEmpty(addr) ? "주소 미입력 (현장 수령)" : addr;
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"주소 가져오기 실패: {e.Message}");
+        }
+        return "주소 정보 없음";
     }
 }

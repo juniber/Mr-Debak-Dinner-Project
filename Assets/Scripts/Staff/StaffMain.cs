@@ -36,6 +36,8 @@ public class StaffMain : MonoBehaviour
 
         if(SMenuPanel.activeSelf != true)
             SMenuPanel.SetActive(true);
+
+        StaffMenubar.RecordCurrent("StaffMainPanel");
     }
 
     private void UpdateStoreInfo(StoreStatusData data)
@@ -157,36 +159,40 @@ public class StaffMain : MonoBehaviour
     {
         var list = new List<StaffData>();
 
-        // role이 "Staff"인 사용자만 쿼리
-        var query = dbReference.Child("users").OrderByChild("role").EqualTo("Staff");
-        var snapshot = await query.GetValueAsync();
-
-        Console.WriteLine("오예 난 이걸 찍어봐야겠어.");
+        // 필터링 없이 일단 'users' 전체를 다 가져옵니다!
+        Debug.Log(" --- [데이터 전수 조사 시작] ---");
+        var snapshot = await dbReference.Child("users").GetValueAsync();
 
         if (snapshot.Exists)
         {
             foreach (var child in snapshot.Children)
             {
-                // 각 필드값 직접 가져오기 (null 체크 포함)
-                string name = child.Child("name").Value?.ToString() ?? "이름없음";
-                string role = child.Child("role").Value?.ToString() ?? "Staff";
+                string uid = child.Key;
+                string name = ParseString(child, "name", "[(이름없음)]");
+                string role = ParseString(child, "role", "[(권한없음)]");
 
-                // status는 DB에 없을 수도 있으므로 체크
-                string status = "근무중";
-                if (child.HasChild("status"))
+                // 로그 출력 (이걸 확인하세요!)
+                Debug.Log($" UID: {uid} | 이름: {name} | 권한: '{role}'");
+
+                // 여기서 "Staff"인 사람만 리스트에 담습니다.
+                // (주의: "Staff " 처럼 공백이 있어도 안 담깁니다!)
+                if (role == "Staff")
                 {
-                    status = child.Child("status").Value.ToString();
+                    list.Add(new StaffData { id = uid, name = name, role = role, status = "근무중" });
                 }
-
-                list.Add(new StaffData
-                {
-                    id = child.Key, // UID
-                    name = name,
-                    status = status,
-                    role = role
-                });
             }
         }
+        Debug.Log(" --- [조사 끝] ---");
+
         return list;
+    }
+
+    private string ParseString(DataSnapshot s, string key, string defaultValue)
+    {
+        if (s.HasChild(key) && s.Child(key).Value != null)
+        {
+            return s.Child(key).Value.ToString();
+        }
+        return defaultValue;
     }
 }

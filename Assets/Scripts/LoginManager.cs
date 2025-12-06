@@ -67,7 +67,7 @@ public class LoginManager : MonoBehaviour
                 string role = userData.role;
 
                 // 역할에 따라 다른 패널 보여주기 
-                if (role == "Staff")
+                if (role == "Staff" || role == "Master")
                 {
                     UIManager.Instance.ShowPanel("StaffMainPanel");
                 }
