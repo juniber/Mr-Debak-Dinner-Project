@@ -6,34 +6,36 @@ using Firebase.Database;
 using System.Threading.Tasks;
 using System;
 
-// 'ConfirmOrderPanel'ÀÇ UI¿Í ·ÎÁ÷À» °ü¸®
-// ÁÖ¹® ³»¿ª(Àå¹Ù±¸´Ï)À» ¿ä¾àÇØ¼­ º¸¿©ÁÖ°í, ¹è´Ş ¿É¼ÇÀ» ¼³Á¤
-// ¼öÁ¤/»èÁ¦/°áÁ¦ ¿äÃ»À» Ã³¸®
+// 'ConfirmOrderPanel'ì˜ UIë¥¼ ì „ë‹´ ê´€ë¦¬í•˜ëŠ” ìŠ¤í¬ë¦½íŠ¸
+// - ì¥ë°”êµ¬ë‹ˆ ë‚´ìš© í‘œì‹œ
+// - ë°°ë‹¬ ì˜µì…˜ ì„¤ì •
+// - ì¿ í° ì ìš©
+// - ìµœì¢… ê²°ì œ ë²„íŠ¼
 public class ConfirmOrderManager : MonoBehaviour
 {
     [Header("User Info")]
     public TMP_Text AddressAndPhoneText;
 
     [Header("Order List")]
-    public Transform OrderItemContainer; // ½ºÅ©·Ñ ºäÀÇ 'Content' ¿ÀºêÁ§Æ®
-    public GameObject OrderItemPrefab;   // 'OrderItemPrefab' ÇÁ¸®ÆÕ
+    public Transform OrderItemContainer;
+    public GameObject OrderItemPrefab;
     public Button DeleteAllButton;
     public Button AddCourseButton;
 
     [Header("Delivery Settings")]
-    public Toggle ImmediateToggle; // "Áï½Ã ¹è´Ş" Åä±Û
-    public Toggle ScheduledToggle; // "¿¹¾à ¹è´Ş" Åä±Û
-    public GameObject DateSelectionContainer; // "¿¹¾à ³¯Â¥: [..] [³¯Â¥ º¯°æ]" ¹öÆ°ÀÇ ºÎ¸ğ
-    public TMP_Text SelectedDateText; // "¿¹¾à ³¯Â¥: [..]" ÅØ½ºÆ®
-    public Button OpenCalendarButton; // "³¯Â¥ º¯°æ" ¹öÆ°
+    public Toggle ImmediateToggle;          // "ë°”ë¡œ ë°°ë‹¬"
+    public Toggle ScheduledToggle;          // "ì˜ˆì•½ ë°°ë‹¬"
+    public GameObject DateSelectionContainer;
+    public TMP_Text SelectedDateText;
+    public Button OpenCalendarButton;
 
     [Header("Request")]
     public TMP_InputField RequestInput;
 
     [Header("Payment")]
-    public TMP_Text DiscountAmountText;
-    public TMP_Text TotalAmountText;
-    public Button ApplyCouponButton;
+    public TMP_Text DiscountAmountText;     // "í• ì¸ ê¸ˆì•¡"
+    public TMP_Text TotalAmountText;        // "ìµœì¢… ê²°ì œ ê¸ˆì•¡"
+    public Button ApplyCouponButton;        // "ì¿ í° ì ìš©" ë²„íŠ¼
 
     [Header("Navigation")]
     public Button WithdrawOrderButton;
@@ -42,7 +44,7 @@ public class ConfirmOrderManager : MonoBehaviour
     private Order currentOrder;
     private DatabaseReference dbReference;
     private FirebaseAuth auth;
-    private UserProfile currentUserProfile;  // »ç¿ëÀÚ ÁÖ¼Ò/ÀüÈ­¹øÈ£ Ä³½Ã
+    private UserProfile currentUserProfile;
 
     private void Awake()
     {
@@ -54,12 +56,16 @@ public class ConfirmOrderManager : MonoBehaviour
         WithdrawOrderButton.onClick.AddListener(OnWithdrawOrderClicked);
         PaymentButton.onClick.AddListener(OnPaymentClicked);
 
-        // ¹è´Ş ¼³Á¤ ¸®½º³Ê ¿¬°á
+        // âœ… ì¿ í° íŒ¨ë„ ì—´ê¸°
+        if (ApplyCouponButton != null)
+            ApplyCouponButton.onClick.AddListener(OnApplyCouponClicked);
+
+        // ë°°ë‹¬ íƒ€ì… í† ê¸€
         ImmediateToggle.onValueChanged.AddListener(OnDeliveryTypeChanged);
         ScheduledToggle.onValueChanged.AddListener(OnDeliveryTypeChanged);
         OpenCalendarButton.onClick.AddListener(OnOpenCalendarClicked);
 
-        // ¿äÃ»»çÇ×Àº ÀÔ·ÂÀÌ ³¡³µÀ» ¶§(¼öÁ¤ ¿Ï·á) ÀúÀå
+        // ìš”ì²­ì‚¬í•­ ì…ë ¥ ëë‚¬ì„ ë•Œ
         RequestInput.onEndEdit.AddListener(OnRequestInputChanged);
     }
 
@@ -67,28 +73,28 @@ public class ConfirmOrderManager : MonoBehaviour
     {
         currentOrder = OrderManager.Instance.CurrentOrder;
 
-        // 1. »ç¿ëÀÚ ÁÖ¼Ò/ÀüÈ­¹øÈ£ ºÒ·¯¿À±â
+        // 1) ìœ ì € ì£¼ì†Œ/ì „í™”ë²ˆí˜¸ ë¡œë“œ
         _ = LoadUserProfileAsync();
 
-        // 2. ÁÖ¹® ¸ñ·Ï UI »ı¼º
+        // 2) ì£¼ë¬¸ ë¦¬ìŠ¤íŠ¸ UI ê°±ì‹ 
         PopulateOrderList();
 
-        // 3. °áÁ¦ ¿ä¾à Á¤º¸ ¾÷µ¥ÀÌÆ®
+        // 3) ê²°ì œ ìš”ì•½(ê¸ˆì•¡, í• ì¸) ê°±ì‹ 
         UpdatePaymentSummary();
 
-        // 4. ÀúÀåµÈ ¿äÃ»»çÇ× ºÒ·¯¿À±â
+        // 4) ìš”ì²­ì‚¬í•­ InputField ì±„ìš°ê¸°
         LoadRequestInput();
 
-        // ¹è´Ş ¼³Á¤ UI ÃÊ±âÈ­
+        // 5) ë°°ë‹¬ ì„¤ì • ì´ˆê¸°í™”
         InitializeDeliverySettings();
     }
 
-    // Firebase¿¡¼­ ÇöÀç ·Î±×ÀÎÇÑ À¯ÀúÀÇ ÇÁ·ÎÇÊ(ÁÖ¼Ò, ÀüÈ­¹øÈ£)À» °¡Á®¿Â´Ù,
+    // ----- Firebaseì—ì„œ UserProfile ì½ê¸° -----
+
     private async Task LoadUserProfileAsync()
     {
         if (auth.CurrentUser == null) return;
 
-        // ÀÌ¹Ì À¯Àú Á¤º¸°¡ ÀÖ´Ù¸é ´Ù½Ã ºÒ·¯¿ÀÁö ¾ÊÀ½
         if (currentUserProfile != null)
         {
             UpdateAddressUI();
@@ -97,16 +103,20 @@ public class ConfirmOrderManager : MonoBehaviour
 
         try
         {
-            DataSnapshot snapshot = await dbReference.Child("users").Child(auth.CurrentUser.UserId).GetValueAsync();
+            DataSnapshot snapshot = await dbReference
+                .Child("users")
+                .Child(auth.CurrentUser.UserId)
+                .GetValueAsync();
+
             if (snapshot.Exists)
             {
                 currentUserProfile = JsonUtility.FromJson<UserProfile>(snapshot.GetRawJsonValue());
                 UnityMainThreadDispatcher.Instance().Enqueue(UpdateAddressUI);
             }
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
-            Debug.LogError($"»ç¿ëÀÚ ÇÁ·ÎÇÊ ·Îµå ½ÇÆĞ: {ex.Message}");
+            Debug.LogError($"ì‚¬ìš©ì í”„ë¡œí•„ ë¡œë“œ ì‹¤íŒ¨: {ex.Message}");
         }
     }
 
@@ -114,14 +124,16 @@ public class ConfirmOrderManager : MonoBehaviour
     {
         if (currentUserProfile != null)
         {
-            AddressAndPhoneText.text = $"ÁÖ¼Ò: {currentUserProfile.address}\nÀüÈ­¹øÈ£: {currentUserProfile.phone}";
+            AddressAndPhoneText.text =
+                $"ì£¼ì†Œ: {currentUserProfile.address}\nì „í™”ë²ˆí˜¸: {currentUserProfile.phone}";
         }
     }
 
-    // OrderManagerÀÇ CurrentOrder¸¦ ±â¹İÀ¸·Î ÁÖ¹® ¸ñ·Ï UI¸¦ »ı¼º
+    // ----- ì£¼ë¬¸ ë¦¬ìŠ¤íŠ¸ UI êµ¬ì„± -----
+
     private void PopulateOrderList()
     {
-        // 1. ±âÁ¸¿¡ »ı¼ºµÈ ¾ÆÀÌÅÛ UIµéÀ» ¸ğµÎ »èÁ¦
+        // ê¸°ì¡´ í•­ëª© ì§€ìš°ê¸°
         foreach (Transform child in OrderItemContainer)
         {
             Destroy(child.gameObject);
@@ -129,60 +141,76 @@ public class ConfirmOrderManager : MonoBehaviour
 
         if (currentOrder == null || currentOrder.GetTotalCourseCount() == 0)
         {
-            Debug.Log("Àå¹Ù±¸´Ï°¡ ºñ¾îÀÖ½À´Ï´Ù.");
+            Debug.Log("ì¥ë°”êµ¬ë‹ˆê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.");
             return;
         }
 
-        // 2. Order °´Ã¼¸¦ ¼øÈ¸ÇÏ¸ç UI ¾ÆÀÌÅÛ »ı¼º
         foreach (var group in currentOrder.courseGroups)
         {
-            string groupTypeKey = group.courseType; // "ValentineDinner"
+            string groupTypeKey = group.courseType;
 
             foreach (var detail in group.details)
             {
-                // 3. PrefabÀ» Content ÀÚ½ÄÀ¸·Î »ı¼º
                 GameObject itemGO = Instantiate(OrderItemPrefab, OrderItemContainer);
                 OrderItemUI itemUI = itemGO.GetComponent<OrderItemUI>();
 
-                // 4. ÀÌ ¾ÆÀÌÅÛÀÌ ¾î¶² CourseDetailÀ» ÂüÁ¶ÇÏ´ÂÁö ÀúÀå
                 CourseDetail targetDetail = detail;
 
-                // 5. UI¿¡ µ¥ÀÌÅÍ Ã¤¿ì±â
                 itemUI.Populate(groupTypeKey, targetDetail);
 
-                // 6. "¿É¼Ç º¯°æ" ¹öÆ°¿¡ ¸®½º³Ê µ¿Àû ¿¬°á
-                itemUI.ChangeOptionButton.onClick.AddListener(() => OnChangeOptionClicked(targetDetail));
+                itemUI.ChangeOptionButton.onClick.AddListener(
+                    () => OnChangeOptionClicked(targetDetail)
+                );
             }
         }
     }
 
-    // ÃÑ °áÁ¦ ±İ¾×, ÇÒÀÎ ±İ¾× µî UI¸¦ ¾÷µ¥ÀÌÆ®
+    // ----- ê²°ì œ ìš”ì•½ UI ê°±ì‹  -----
+
     private void UpdatePaymentSummary()
     {
-        // Àå¹Ù±¸´Ï »óÅÂ È®ÀÎ
         bool isCartEmpty = (currentOrder == null || currentOrder.GetTotalCourseCount() == 0);
 
         if (currentOrder == null)
         {
-            TotalAmountText.text = "ÃÑ °áÁ¦ ±İ¾×: 0¿ø";
-            DiscountAmountText.text = "ÇÒÀÎ ±İ¾×: 0¿ø";
+            TotalAmountText.text = "ì´ ê²°ì œ ê¸ˆì•¡: 0ì›";
+            DiscountAmountText.text = "í• ì¸ ê¸ˆì•¡: 0ì›";
+            PaymentButton.interactable = false;
+            DeleteAllButton.interactable = false;
+            WithdrawOrderButton.interactable = false;
             return;
         }
 
-        // 1. PriceManager¿¡ ÃÑ °¡°İ °è»ê ¿äÃ»
+        // 1) ë¨¼ì € ê¸°ë³¸ ì´ì•¡ ê³„ì‚° (í• ì¸ ì „)
         PriceManager.Instance.CalculateTotalPrice(currentOrder);
+        long baseTotal = currentOrder.totalPrice;
 
-        // 2. UI¿¡ ¹İ¿µ
-        TotalAmountText.text = $"ÃÑ °áÁ¦ ±İ¾×: {currentOrder.totalPrice:N0}¿ø";
-        DiscountAmountText.text = "ÇÒÀÎ ±İ¾×: 0¿ø"; // (ÄíÆù ±â´ÉÀº ³ªÁß¿¡)
+        // 2) ì¿ í° ì ìš© ì—¬ë¶€ì— ë”°ë¼ ìµœì¢… ê¸ˆì•¡ ê³„ì‚°
+        long finalTotal = baseTotal;
+        long discountValue = 0;
 
-        // 3. Àå¹Ù±¸´Ï »óÅÂ¿¡ µû¶ó ¹öÆ° È°¼ºÈ­/ºñÈ°¼ºÈ­
+        if (currentOrder.coupons != null && currentOrder.coupons.Count > 0)
+        {
+            finalTotal = PriceManager.Instance.DiscountTotalPrice(currentOrder);
+            discountValue = baseTotal - finalTotal;
+        }
+        else
+        {
+            currentOrder.totalDiscountPrice = baseTotal;
+        }
+
+        // 3) UI ë°˜ì˜
+        TotalAmountText.text = $"ì´ ê²°ì œ ê¸ˆì•¡: {finalTotal:N0}ì›";
+        DiscountAmountText.text = $"í• ì¸ ê¸ˆì•¡: {discountValue:N0}ì›";
+
+        // ë²„íŠ¼ í™œì„±í™” ì—¬ë¶€
         PaymentButton.interactable = !isCartEmpty;
         DeleteAllButton.interactable = !isCartEmpty;
         WithdrawOrderButton.interactable = !isCartEmpty;
     }
 
-    // Order °´Ã¼¿¡ ÀúÀåµÈ ¿äÃ»»çÇ×À» InputField¿¡ ºÒ·¯¿Â´Ù, 
+    // ----- ìš”ì²­ì‚¬í•­ InputField -----
+
     private void LoadRequestInput()
     {
         if (currentOrder != null)
@@ -195,142 +223,127 @@ public class ConfirmOrderManager : MonoBehaviour
         }
     }
 
-    // Order °´Ã¼ÀÇ ¹è´Ş ¼³Á¤°ªÀ» UI¿¡ ·Îµå
     private void InitializeDeliverySettings()
     {
         if (currentOrder != null && currentOrder.isReservation)
         {
-            // ¿¹¾à ÁÖ¹® »óÅÂ·Î º¹¿ø
             ScheduledToggle.isOn = true;
             DateSelectionContainer.SetActive(true);
-            SelectedDateText.text = $"¿¹¾à ³¯Â¥: {DateTime.Parse(currentOrder.deliveryDate):yyyy³â MM¿ù ddÀÏ}";
+            SelectedDateText.text =
+                $"ë°°ë‹¬ ë‚ ì§œ: {DateTime.Parse(currentOrder.deliveryDate):yyyyë…„ MMì›” ddì¼}";
         }
         else
         {
-            // Áï½Ã ¹è´Ş »óÅÂ·Î ÃÊ±âÈ­
             ImmediateToggle.isOn = true;
             DateSelectionContainer.SetActive(false);
-            SelectedDateText.text = "¿¹¾à ³¯Â¥: (¼±ÅÃµÇÁö ¾ÊÀ½)";
+            SelectedDateText.text = "ë°°ë‹¬ ë‚ ì§œ: (ì„ íƒë˜ì§€ ì•ŠìŒ)";
         }
     }
 
-    // "¿É¼Ç º¯°æ" ¹öÆ° Å¬¸¯ ½Ã
+    // ----- ë²„íŠ¼ í•¸ë“¤ëŸ¬ -----
+
     private void OnChangeOptionClicked(CourseDetail targetDetail)
     {
-        // 1. OrderManager¿¡ Áö±İ ¼öÁ¤ÇÒ CourseDetailÀÌ ¹«¾ùÀÎÁö ¾Ë·ÁÁİ´Ï´Ù. (ÇÙ½É)
         OrderManager.Instance.SetCourseDetailForEditing(targetDetail);
-
-        // 2. DinnerDetailPanel·Î ÀÌµ¿
         UIManager.Instance.ShowPanel("DinnerDetailPanel");
     }
 
-    // "ÀüÃ¼ »èÁ¦" ¹öÆ° Å¬¸¯ ½Ã
     private void OnDeleteAllClicked()
     {
         OrderManager.Instance.ClearOrder();
         currentOrder = null;
 
-        // UI Áï½Ã °»½Å
         PopulateOrderList();
         UpdatePaymentSummary();
         LoadRequestInput();
-        InitializeDeliverySettings(); 
+        InitializeDeliverySettings();
 
-        // Àå¹Ù±¸´Ï°¡ ºñ¾úÀ¸¹Ç·Î ¹öÆ°µé ºñÈ°¼ºÈ­
         PaymentButton.interactable = false;
         DeleteAllButton.interactable = false;
     }
 
-    // "ÄÚ½º Ãß°¡ÇÏ±â" ¹öÆ° Å¬¸¯ ½Ã
     private void OnAddCourseClicked()
     {
         UIManager.Instance.ShowPanel("SelectDinnerPanel");
     }
 
-    // "ÁÖ¹® Ãë¼ÒÇÏ±â" ¹öÆ° Å¬¸¯ ½Ã
     private void OnWithdrawOrderClicked()
     {
         OrderManager.Instance.ClearOrder();
         UIManager.Instance.ShowPanel("CustomerMainPanel");
     }
 
-    // "°áÁ¦ÇÏ±â" ¹öÆ° Å¬¸¯ ½Ã
     private async void OnPaymentClicked()
     {
-        // 1. ¹öÆ° ºñÈ°¼ºÈ­ (Áßº¹ Àü¼Û ¹æÁö)
         PaymentButton.interactable = false;
-        UIManager.Instance.ShowTemporaryStatus("ÁÖ¹®À» Àü¼ÛÇÏ´Â Áß...", 10f); // 10ÃÊ°£ ·Îµù ¸Ş½ÃÁö
+        UIManager.Instance.ShowTemporaryStatus("ì£¼ë¬¸ì„ ì²˜ë¦¬í•˜ëŠ” ì¤‘ì…ë‹ˆë‹¤...", 10f);
 
         try
         {
-            // 2. (¾ÈÀü ÀåÄ¡) InputFieldÀÇ ÇöÀç ÅØ½ºÆ®¸¦ Order °´Ã¼¿¡ Áï½Ã ÀúÀå
             OnRequestInputChanged(RequestInput.text);
 
-            // 3. ÇöÀç Åä±Û »óÅÂ(Áï½Ã/¿¹¾à)¸¦ OrderManager¿¡ Àü´Ş
             bool isReservation = ScheduledToggle.isOn;
             await OrderManager.Instance.FinalizeAndSubmitOrder(isReservation);
 
-            // 4. ¼º°ø ½Ã, ÁÖ¹® ¿Ï·á ÆĞ³Î·Î ÀÌµ¿
             UIManager.Instance.ShowPanel("OrderCompletePanel");
         }
-        catch (Exception ex)
+        catch (System.Exception ex)
         {
-            // 5. ½ÇÆĞ ½Ã, »ç¿ëÀÚ¿¡°Ô ¾Ë¸®°í ¹öÆ° ´Ù½Ã È°¼ºÈ­
-            Debug.LogError($"ÁÖ¹® Àü¼Û ½ÇÆĞ: {ex}");
-            // UIManager°¡ ÀÌ¹Ì "Àç°í ºÎÁ·" ¸Ş½ÃÁö¸¦ ¶ç¿üÀ» ¼ö ÀÖÀ½
-            if (!ex.Message.Contains("Àç°í")) // Àç°í ¿À·ù°¡ ¾Æ´Ò °æ¿ì¿¡¸¸ Ãß°¡ ¸Ş½ÃÁö
+            Debug.LogError($"ì£¼ë¬¸ ì²˜ë¦¬ ì‹¤íŒ¨: {ex}");
+            if (!ex.Message.Contains("ì·¨ì†Œ"))
             {
-                UIManager.Instance.ShowTemporaryStatus("ÁÖ¹® Àü¼Û¿¡ ½ÇÆĞÇß½À´Ï´Ù. ´Ù½Ã ½ÃµµÇØÁÖ¼¼¿ä.", 3f);
+                UIManager.Instance.ShowTemporaryStatus(
+                    "ì£¼ë¬¸ ì²˜ë¦¬ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤. ë‹¤ì‹œ ì‹œë„í•´ ì£¼ì„¸ìš”.",
+                    3f
+                );
             }
             PaymentButton.interactable = true;
         }
     }
 
-    // "°¡°Ô ¿äÃ»»çÇ×" InputField ÀÔ·Â ¿Ï·á ½Ã
     private void OnRequestInputChanged(string text)
     {
         if (currentOrder != null)
         {
             currentOrder.globalRequests = text;
-            Debug.Log("¿äÃ»»çÇ×ÀÌ Order °´Ã¼¿¡ ÀúÀåµÇ¾ú½À´Ï´Ù.");
+            Debug.Log("ìš”ì²­ì‚¬í•­ì´ Order ê°ì²´ì— ë°˜ì˜ë˜ì—ˆìŠµë‹ˆë‹¤.");
         }
     }
 
-    // ¹è´Ş À¯Çü Åä±ÛÀÌ º¯°æµÇ¾úÀ» ¶§ È£Ãâ
     private void OnDeliveryTypeChanged(bool isOn)
     {
-        // isOnÀÌ falseÀÏ ¶§´Â(Åä±ÛÀÌ ²¨Áú ¶§) ¾Æ¹«°Íµµ ÇÏÁö ¾ÊÀ½
         if (!isOn) return;
 
         if (ImmediateToggle.isOn)
         {
-            // Áï½Ã ¹è´Ş ¼±ÅÃµÊ
             DateSelectionContainer.SetActive(false);
             if (currentOrder != null) currentOrder.isReservation = false;
         }
         else if (ScheduledToggle.isOn)
         {
-            // ¿¹¾à ¹è´Ş ¼±ÅÃµÊ
             DateSelectionContainer.SetActive(true);
 
-            // ¸¸¾à ³¯Â¥°¡ ¾ÆÁ÷ ¼±ÅÃ ¾ÈµÆÀ¸¸é, ¿À´Ã ³¯Â¥·Î ±âº» ¼³Á¤
             if (currentOrder != null)
             {
                 currentOrder.isReservation = true;
-                // ³¯Â¥°¡ ÀÌ¹Ì ¼³Á¤µÇ¾ú´ÂÁö È®ÀÎ, ¾ÈµÆÀ¸¸é ¿À´Ã ³¯Â¥·Î
                 if (DateTime.Parse(currentOrder.deliveryDate) < DateTime.Today)
                 {
                     currentOrder.deliveryDate = DateTime.Today.ToString("yyyy-MM-dd");
                 }
-                SelectedDateText.text = $"¿¹¾à ³¯Â¥: {DateTime.Parse(currentOrder.deliveryDate):yyyy³â MM¿ù ddÀÏ}";
+                SelectedDateText.text =
+                    $"ë°°ë‹¬ ë‚ ì§œ: {DateTime.Parse(currentOrder.deliveryDate):yyyyë…„ MMì›” ddì¼}";
             }
         }
     }
 
-    // "³¯Â¥ º¯°æ" ¹öÆ° Å¬¸¯ ½Ã
     private void OnOpenCalendarClicked()
     {
-        // CalendarPanelÀ» ¶ç¿ò
         UIManager.Instance.ShowPanel("CalendarPanel");
+    }
+
+    // âœ… ì¿ í° ì ìš© ë²„íŠ¼ â†’ ì¿ í° ì„ íƒ íŒ¨ë„ë¡œ ì´ë™
+    private void OnApplyCouponClicked()
+    {
+        UIManager.Instance.ShowPanel("FindCouponPanel"); // ë˜ëŠ” CouponPanel ì´ë¦„
     }
 }

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System;
 
-// Firebase DB¿¡¼­ °¡°İÇ¥(priceList)¸¦ ·ÎµåÇÏ°í,
-// ÁÖ¹® °¡°İ °è»êÀ» Àü´ãÇÏ´Â ½Ì±ÛÅæ ¸Å´ÏÀú
+// Firebase DBì—ì„œ ê°€ê²©í‘œ(priceList)ë¥¼ ë¡œë“œí•˜ê³ ,
+// ì£¼ë¬¸ ê¸ˆì•¡ ê³„ì‚°ì„ ë‹´ë‹¹í•˜ëŠ” ë§¤ë‹ˆì €
 public class PriceManager : MonoBehaviour
 {
     public static PriceManager Instance { get; private set; }
@@ -13,7 +13,7 @@ public class PriceManager : MonoBehaviour
 
     private DatabaseReference dbReference;
 
-    // DB¿¡¼­ ºÒ·¯¿Â °¡°İ µ¥ÀÌÅÍ¸¦ ÀúÀåÇÒ µñ¼Å³Ê¸®
+    // DBì—ì„œ ê°€ì ¸ì˜¨ ê°€ê²© ë°ì´í„°ë¥¼ ì €ì¥í•  ìºì‹œ
     private Dictionary<string, long> coursePrices;
     private Dictionary<string, long> stylePrices;
     private Dictionary<string, long> addonPrices;
@@ -25,7 +25,7 @@ public class PriceManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // µñ¼Å³Ê¸® ÃÊ±âÈ­
+            // ìºì‹œ ì´ˆê¸°í™”
             coursePrices = new Dictionary<string, long>();
             stylePrices = new Dictionary<string, long>();
             addonPrices = new Dictionary<string, long>();
@@ -36,89 +36,205 @@ public class PriceManager : MonoBehaviour
         }
     }
 
-    // AppInitializer°¡ È£ÃâÇÒ °ø¿ë ÃÊ±âÈ­ ÇÔ¼ö.
-    // DB¿¡¼­ °¡°İÇ¥¸¦ ºñµ¿±â½ÄÀ¸·Î °¡Á®¿Â´Ù.
+    // âœ… ì”¬ì— PriceManagerê°€ ë“±ì¥í•˜ë©´ ë°”ë¡œ priceListë¥¼ í•œ ë²ˆ ë¡œë“œí•´ ë‘”ë‹¤.
+    private async void Start()
+    {
+        await FetchPriceDataAsync();
+    }
+
+    // AppInitializerì—ì„œ í˜¸ì¶œí•  ìˆ˜ë„ ìˆê³ , Start()ì—ì„œ ìë™ìœ¼ë¡œ í•œ ë²ˆ í˜¸ì¶œí•˜ê¸°ë„ í•¨.
     public async Task FetchPriceDataAsync()
     {
-        if (IsPriceDataReady) return; // ÀÌ¹Ì ·ÎµåµÊ
+        if (IsPriceDataReady)
+        {
+            Debug.Log("[PriceManager] ì´ë¯¸ priceList ë¡œë”©ì´ ëë‚œ ìƒíƒœì…ë‹ˆë‹¤.");
+            return;
+        }
 
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
+
         try
         {
+            Debug.Log("[PriceManager] priceList ë¡œë”© ì‹œì‘");
+
             DataSnapshot snapshot = await dbReference.Child("priceList").GetValueAsync();
             if (!snapshot.Exists)
             {
-                Debug.LogError("Firebase¿¡ 'priceList' µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù!");
+                Debug.LogError("Firebaseì— 'priceList' ë…¸ë“œê°€ ì—†ìŠµë‹ˆë‹¤!");
                 return;
             }
 
-            // 1. ÄÚ½º °¡°İ ·Îµå
-            foreach (var courseData in snapshot.Child("courses").Children)
+            coursePrices.Clear();
+            stylePrices.Clear();
+            addonPrices.Clear();
+
+            // 1. ì½”ìŠ¤ ê°€ê²© ë¡œë“œ
+            var coursesNode = snapshot.Child("courses");
+            foreach (var courseData in coursesNode.Children)
             {
-                coursePrices[courseData.Key] = Convert.ToInt64(courseData.Value);
+                long v = Convert.ToInt64(courseData.Value);
+                coursePrices[courseData.Key] = v;
+                Debug.Log($"[PriceManager] course ê°€ê²© ë¡œë“œ: {courseData.Key} = {v}");
             }
-            // 2. ½ºÅ¸ÀÏ °¡°İ ·Îµå
-            foreach (var styleData in snapshot.Child("styles").Children)
+
+            // 2. ìŠ¤íƒ€ì¼ ê°€ê²© ë¡œë“œ
+            var stylesNode = snapshot.Child("styles");
+            foreach (var styleData in stylesNode.Children)
             {
-                stylePrices[styleData.Key] = Convert.ToInt64(styleData.Value);
+                long v = Convert.ToInt64(styleData.Value);
+                stylePrices[styleData.Key] = v;
+                Debug.Log($"[PriceManager] style ê°€ê²© ë¡œë“œ: {styleData.Key} = {v}");
             }
-            // 3. Ãß°¡ Ç×¸ñ °¡°İ ·Îµå
-            foreach (var addonData in snapshot.Child("addons").Children)
+
+            // 3. ì¶”ê°€ ë©”ë‰´(addon) ê°€ê²© ë¡œë“œ
+            var addonsNode = snapshot.Child("addons");
+            foreach (var addonData in addonsNode.Children)
             {
-                addonPrices[addonData.Key] = Convert.ToInt64(addonData.Value);
+                long v = Convert.ToInt64(addonData.Value);
+                addonPrices[addonData.Key] = v;
+                Debug.Log($"[PriceManager] addon ê°€ê²© ë¡œë“œ: {addonData.Key} = {v}");
             }
 
             IsPriceDataReady = true;
-            Debug.Log("Firebase °¡°İÇ¥ ·Îµå ¼º°ø!");
+            Debug.Log($"[PriceManager] priceList ë¡œë”© ì™„ë£Œ. " +
+                      $"courses={coursePrices.Count}, styles={stylePrices.Count}, addons={addonPrices.Count}");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"°¡°İÇ¥ ·Îµå ½ÇÆĞ: {ex.Message}");
+            Debug.LogError($"[PriceManager] priceList ë¡œë”© ì‹¤íŒ¨: {ex.Message}");
         }
     }
 
-    // Public Getter ÇÔ¼öµé (ÀÌÁ¦ DB°¡ ¾Æ´Ñ ·ÎÄÃ µñ¼Å³Ê¸®¿¡¼­ Áï½Ã ¹İÈ¯)
+    // ====== Public Getterë“¤ ======
 
     public long GetCoursePrice(CourseType type)
     {
+        if (!IsPriceDataReady)
+        {
+            Debug.LogWarning($"[PriceManager] GetCoursePrice í˜¸ì¶œ ì‹œì ì— priceListê°€ ì•„ì§ ì¤€ë¹„ ì•ˆ ë¨. type={type}");
+        }
+
         return coursePrices.TryGetValue(type.ToString(), out long price) ? price : 0;
     }
 
     public long GetStylePrice(StyleType style)
     {
+        if (!IsPriceDataReady)
+        {
+            Debug.LogWarning($"[PriceManager] GetStylePrice í˜¸ì¶œ ì‹œì ì— priceListê°€ ì•„ì§ ì¤€ë¹„ ì•ˆ ë¨. style={style}");
+        }
+
         return stylePrices.TryGetValue(style.ToString(), out long price) ? price : 0;
     }
 
     public long GetAddonPrice(string addonKey)
     {
+        if (!IsPriceDataReady)
+        {
+            Debug.LogWarning($"[PriceManager] GetAddonPrice í˜¸ì¶œ ì‹œì ì— priceListê°€ ì•„ì§ ì¤€ë¹„ ì•ˆ ë¨. addonKey={addonKey}");
+        }
+
         return addonPrices.TryGetValue(addonKey, out long price) ? price : 0;
     }
 
-    // Order °´Ã¼¸¦ ¹Ş¾Æ ÃÑ °¡°İÀ» °è»êÇÏ°í, order.totalPrice¿¡ °ªÀ» ¼³Á¤
+    // ====== í•©ê³„ ê³„ì‚° ======
+
+    // Order ê°ì²´ë¥¼ ë°›ì•„ ì´ ê¸ˆì•¡(í• ì¸ ì „)ì„ ê³„ì‚°í•˜ê³  order.totalPriceì— ì €ì¥
     public void CalculateTotalPrice(Order order)
     {
-        if (order == null || order.courseGroups == null) return;
+        if (order == null || order.courseGroups == null)
+        {
+            Debug.LogWarning("[PriceManager] CalculateTotalPrice: order ë˜ëŠ” courseGroups ê°€ null ì…ë‹ˆë‹¤.");
+            return;
+        }
+
+        if (!IsPriceDataReady)
+        {
+            Debug.LogWarning("[PriceManager] CalculateTotalPrice í˜¸ì¶œëì§€ë§Œ priceListê°€ ì•„ì§ ì¤€ë¹„ ì•ˆ ë¨. " +
+                             "ëª¨ë“  ê¸ˆì•¡ì´ 0ìœ¼ë¡œ ê³„ì‚°ë  ìˆ˜ ìˆìŠµë‹ˆë‹¤.");
+        }
 
         long newTotal = 0;
+
         foreach (var group in order.courseGroups)
         {
-            CourseType type = (CourseType)Enum.Parse(typeof(CourseType), group.courseType);
-            // 1. ÄÚ½º ±âº» °¡°İ
+            // group.courseType ì€ "ValentineDinner" ì´ëŸ° ë¬¸ìì—´ì´ì–´ì•¼ í•¨.
+            if (string.IsNullOrEmpty(group.courseType))
+                continue;
+
+            if (!System.Enum.TryParse(group.courseType, out CourseType type))
+            {
+                Debug.LogWarning($"[PriceManager] ì•Œ ìˆ˜ ì—†ëŠ” courseType ë¬¸ìì—´: {group.courseType}");
+                continue;
+            }
+
             long baseCoursePrice = GetCoursePrice(type);
 
             foreach (var detail in group.details)
             {
-                // ÄÚ½º´ç °¡°İ Ãß°¡
-                newTotal += baseCoursePrice;
-                // 2. ½ºÅ¸ÀÏ Ãß°¡ °¡°İ
-                newTotal += GetStylePrice(detail.style);
-                // 3. 'Ãß°¡' Ç×¸ñ °¡°İ
+                long itemPrice = baseCoursePrice;
+
+                // ìŠ¤íƒ€ì¼ ê°€ê²©
+                itemPrice += GetStylePrice(detail.style);
+
+                // ì¶”ê°€ addon ê°€ê²©
                 foreach (string addonKey in detail.addedItems)
                 {
-                    newTotal += GetAddonPrice(addonKey);
+                    itemPrice += GetAddonPrice(addonKey);
                 }
+
+                newTotal += itemPrice;
             }
         }
-        order.totalPrice = newTotal; // Order °´Ã¼ÀÇ totalPrice º¯¼ö¸¦ Á÷Á¢ ¾÷µ¥ÀÌÆ®
+
+        order.totalPrice = newTotal;
+        Debug.Log($"[PriceManager] CalculateTotalPrice ì™„ë£Œ: totalPrice={newTotal}");
+    }
+
+    // (ë„¤ê°€ ì¶”ê°€í•œ í• ì¸ í•¨ìˆ˜) Order ì•ˆì˜ coupons ë¦¬ìŠ¤íŠ¸ë¥¼ ì´ìš©í•´
+    // ìµœì¢… í• ì¸ëœ ê¸ˆì•¡ì„ ê³„ì‚°í•˜ê³  totalPrice/totalDiscountPriceì— ë°˜ì˜
+    public long DiscountTotalPrice(Order order)
+    {
+        if (order == null)
+        {
+            Debug.LogWarning("[PriceManager] DiscountTotalPrice: orderê°€ null ì…ë‹ˆë‹¤.");
+            return 0;
+        }
+
+        // í•­ìƒ ë¨¼ì € ê¸°ë³¸ ê¸ˆì•¡ ê³„ì‚°
+        CalculateTotalPrice(order);
+        long baseTotal = order.totalPrice;
+
+        if (order.coupons == null || order.coupons.Count == 0)
+        {
+            // ì¿ í° ì—†ìœ¼ë©´ ê·¸ëƒ¥ ê¸°ë³¸ ê¸ˆì•¡
+            order.totalDiscountPrice = baseTotal;
+            return baseTotal;
+        }
+
+        long maxDiscountPercent = 0;
+
+        foreach (var coupon in order.coupons)
+        {
+            if (coupon == null) continue;
+            if (coupon.discountAmount < 0) continue;
+
+            if (coupon.discountAmount > maxDiscountPercent)
+                maxDiscountPercent = coupon.discountAmount;
+        }
+
+        if (maxDiscountPercent > 100)
+            maxDiscountPercent = 100;
+
+        long discountValue = baseTotal * maxDiscountPercent / 100;
+        long finalTotal = baseTotal - discountValue;
+        if (finalTotal < 0) finalTotal = 0;
+
+        order.totalDiscountPrice = finalTotal;
+        order.totalPrice = finalTotal;
+
+        Debug.Log($"[PriceManager] í• ì¸ ì „={baseTotal}, í• ì¸ìœ¨={maxDiscountPercent}%, ìµœì¢…={finalTotal}");
+
+        return finalTotal;
     }
 }

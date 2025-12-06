@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
 
-// ÁÖ¹® ¼¼¼ÇÀ» °ü¸®ÇÏ´Â ½Ì±ÛÅæ
-// »ç¿ëÀÚ°¡ ¾ÛÀ» ½ÇÇàÇÏ´Â µ¿¾È »ý¼º ÁßÀÎ 'Order' °´Ã¼¸¦ º¸°ü
+// ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ì±ï¿½ï¿½ï¿½
+// ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 'Order' ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 public class OrderManager : MonoBehaviour
 {
     public static OrderManager Instance { get; private set; }
@@ -14,10 +14,10 @@ public class OrderManager : MonoBehaviour
     private FirebaseAuth auth;
     private DatabaseReference dbReference;
 
-    // ÇöÀç »ç¿ëÀÚ°¡ »ý¼º ÁßÀÎ ÁÖ¹® (Àå¹Ù±¸´Ï)
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ú°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ (ï¿½ï¿½Ù±ï¿½ï¿½ï¿½)
     public Order CurrentOrder { get; private set; }
 
-    // ÇöÀç DinnerDetailPanel¿¡¼­ ¼öÁ¤ ÁßÀÎ Æ¯Á¤ CourseDetail
+    // ï¿½ï¿½ï¿½ï¿½ DinnerDetailPanelï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Æ¯ï¿½ï¿½ CourseDetail
     private CourseDetail _editingCourseDetail;
 
     void Awake()
@@ -39,152 +39,152 @@ public class OrderManager : MonoBehaviour
         dbReference = FirebaseDatabase.DefaultInstance.RootReference;
     }
 
-    // »õ ÄÚ½º¸¦ ÇöÀç ÁÖ¹®¿¡ Ãß°¡
+    // ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ß°ï¿½
     public void AddCourseToOrder(CourseType type)
     {
-        // ÇöÀç ÁÖ¹®ÀÌ ¾ø´Ù¸é »õ·Î »ý¼º
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (CurrentOrder == null)
         {
-            // ·Î±×ÀÎÇÑ »ç¿ëÀÚ ID·Î »õ ÁÖ¹® »ý¼º
+            // ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½
             FirebaseUser user = auth.CurrentUser;
             if (user == null)
             {
-                Debug.LogError("·Î±×ÀÎÇÑ »ç¿ëÀÚ Á¤º¸°¡ ¾ø½À´Ï´Ù.");
+                Debug.LogError("ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
                 return;
             }
-            // ·Î±×ÀÎÇÑ »ç¿ëÀÚ ID·Î »õ Order °´Ã¼ »ý¼º
+            // ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ IDï¿½ï¿½ ï¿½ï¿½ Order ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½
             CurrentOrder = new Order(user.UserId);
         }
 
-        // Order °´Ã¼¿¡ »õ ÄÚ½º Ãß°¡ (»õ CourseDetail °´Ã¼°¡ »ý¼ºµÊ)
+        // Order ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ ï¿½Ú½ï¿½ ï¿½ß°ï¿½ (ï¿½ï¿½ CourseDetail ï¿½ï¿½Ã¼ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½)
         CurrentOrder.AddCourse(type);
-        // ¹æ±Ý Ãß°¡ÇÑ »õ CourseDetailÀ» '¼öÁ¤ ´ë»ó'À¸·Î ÀÚµ¿ ¼³Á¤
+        // ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ ï¿½ï¿½ CourseDetailï¿½ï¿½ 'ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½'ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½ ï¿½ï¿½ï¿½ï¿½
         _editingCourseDetail = CurrentOrder.GetLastAddedCourseDetail();
     }
 
-    // "¿É¼Ç º¯°æ" ½Ã, ¼öÁ¤ÇÒ ´ë»óÀ» ¸í½ÃÀûÀ¸·Î ¼³Á¤
+    // "ï¿½É¼ï¿½ ï¿½ï¿½ï¿½ï¿½" ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     public void SetCourseDetailForEditing(CourseDetail detail)
     {
         _editingCourseDetail = detail;
     }
 
-    // DinnerDetailManager°¡ ÇöÀç ¼öÁ¤ÇØ¾ß ÇÒ CourseDetailÀ» ¹ÝÈ¯
+    // DinnerDetailManagerï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ ï¿½ï¿½ CourseDetailï¿½ï¿½ ï¿½ï¿½È¯
     public CourseDetail GetCurrentCourseDetailForEditing()
     {
         if (CurrentOrder == null)
         {
-            Debug.LogError("CurrentOrder°¡ nullÀÔ´Ï´Ù. AddCourseToOrder°¡ ¸ÕÀú È£ÃâµÇ¾î¾ß ÇÕ´Ï´Ù.");
+            Debug.LogError("CurrentOrderï¿½ï¿½ nullï¿½Ô´Ï´ï¿½. AddCourseToOrderï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È£ï¿½ï¿½Ç¾ï¿½ï¿½ ï¿½Õ´Ï´ï¿½.");
             _editingCourseDetail = CurrentOrder?.GetLastAddedCourseDetail();
         }
-        // Order °´Ã¼ ³»ÀÇ ÇïÆÛ ÇÔ¼ö¸¦ È£Ãâ
+        // Order ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½
         return _editingCourseDetail;
     }
 
-    // Àå¹Ù±¸´Ï(CurrentOrder)¸¦ ºñ¿î´Ù. 
+    // ï¿½ï¿½Ù±ï¿½ï¿½ï¿½(CurrentOrder)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. 
     public void ClearOrder()
     {
         CurrentOrder = null;
         _editingCourseDetail = null;
     }
 
-    // ÇöÀç ÁÖ¹®À» DB¿¡ ÀúÀåÇÏ°í ¼¼¼ÇÀ» Á¾·á
-    // 'isReservation' ÇÃ·¡±×¸¦ ¹Þ¾Æ Áï½Ã ÁÖ¹®°ú ¿¹¾à ÁÖ¹®À» ±¸ºÐ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    // 'isReservation' ï¿½Ã·ï¿½ï¿½×¸ï¿½ ï¿½Þ¾ï¿½ ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     public async Task FinalizeAndSubmitOrder(bool isReservation)
     {
         if (CurrentOrder == null)
         {
-            Debug.LogWarning("Àü¼ÛÇÒ ÁÖ¹®ÀÌ ¾ø½À´Ï´Ù.");
+            Debug.LogWarning("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
             return;
         }
 
-        // 1. ÁÖ¹® °´Ã¼ »óÅÂ È®Á¤
+        // 1. ï¿½Ö¹ï¿½ ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
         PriceManager.Instance.CalculateTotalPrice(CurrentOrder);
 
-        // ¿¹¾à ¿©ºÎ¿¡ µû¶ó »óÅÂ¸¦ ´Ù¸£°Ô ¼³Á¤
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Â¸ï¿½ ï¿½Ù¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (isReservation)
         {
-            CurrentOrder.status = OrderStatus.Reserved; // (Enum °ª 1)
+            CurrentOrder.status = OrderStatus.Reserved; // (Enum ï¿½ï¿½ 1)
         }
         else
         {
-            CurrentOrder.status = OrderStatus.Confirmed; // (Enum °ª 2)
+            CurrentOrder.status = OrderStatus.Confirmed; // (Enum ï¿½ï¿½ 2)
         }
         CurrentOrder.orderTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         CurrentOrder.isReservation = isReservation;
 
-        // 2. Àç°í Â÷°¨ (Áï½Ã ÁÖ¹®ÀÏ °æ¿ì¿¡¸¸)
+        // 2. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ì¿¡ï¿½ï¿½)
         try
         {
-            // (¼öÁ¤) Àç°í Â÷°¨ ·ÎÁ÷À» ½ÇÁ¦ ±¸Çö ÇÔ¼ö·Î º¯°æ
+            // (ï¿½ï¿½ï¿½ï¿½) ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             await SubtractInventory(CurrentOrder);
         }
         catch (Exception ex)
         {
-            // Àç°í Â÷°¨ Æ®·£Àè¼Ç ½ÇÆÐ (¿¹: µ¿½Ã Á¢¼ÓÀ¸·Î Àç°í ºÎÁ·)
-            Debug.LogError($"Àç°í Â÷°¨ ½ÇÆÐ: {ex}");
-            // »ç¿ëÀÚ¿¡°Ô ¿À·ù ¸Þ½ÃÁö¸¦ Ç¥½ÃÇÏ°í ÁÖ¹® Àü¼ÛÀ» Áß´Ü
-            UIManager.Instance.ShowTemporaryStatus("ÁË¼ÛÇÕ´Ï´Ù. ÁÖ¹® Áß Àç°í°¡ ¼ÒÁøµÇ¾ú½À´Ï´Ù.", 3f, 1);
-            throw; // ¿¹¿Ü¸¦ ´Ù½Ã ´øÁ®¼­ ConfirmOrderManagerÀÇ catch ºí·ÏÀÌ ½ÇÇàµÇµµ·Ï ÇÔ
+            // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
+            Debug.LogError($"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: {ex}");
+            // ï¿½ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½
+            UIManager.Instance.ShowTemporaryStatus("ï¿½Ë¼ï¿½ï¿½Õ´Ï´ï¿½. ï¿½Ö¹ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.", 3f, 1);
+            throw; // ï¿½ï¿½ï¿½Ü¸ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ConfirmOrderManagerï¿½ï¿½ catch ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½
         }
 
-        // 3. Order °´Ã¼¸¦ JSONÀ¸·Î º¯È¯
+        // 3. Order ï¿½ï¿½Ã¼ï¿½ï¿½ JSONï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¯
         string json = JsonUtility.ToJson(CurrentOrder, true);
-        Debug.Log("--- ÃÖÁ¾ ÁÖ¹® DB Àü¼Û ---");
+        Debug.Log("--- ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¹ï¿½ DB ï¿½ï¿½ï¿½ï¿½ ---");
         Debug.Log(json);
 
-        // 4. (¼öÁ¤) ÁÖ¹® °æ·Î ºÐ¸®
+        // 4. (ï¿½ï¿½ï¿½ï¿½) ï¿½Ö¹ï¿½ ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½
         string orderPath = isReservation ? "scheduledOrders" : "orders";
 
         await dbReference.Child(orderPath).Child(CurrentOrder.orderId).SetRawJsonValueAsync(json);
 
-        Debug.Log($"ÁÖ¹®ÀÌ [{orderPath}] °æ·Î·Î Àü¼ÛµÇ¾ú½À´Ï´Ù.");
+        Debug.Log($"ï¿½Ö¹ï¿½ï¿½ï¿½ [{orderPath}] ï¿½ï¿½Î·ï¿½ ï¿½ï¿½ï¿½ÛµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
 
-        // 5. ÁÖ¹® ¿Ï·á ÈÄ Àå¹Ù±¸´Ï(CurrentOrder) ºñ¿ì±â
+        // 5. ï¿½Ö¹ï¿½ ï¿½Ï·ï¿½ ï¿½ï¿½ ï¿½ï¿½Ù±ï¿½ï¿½ï¿½(CurrentOrder) ï¿½ï¿½ï¿½ï¿½
         ClearOrder();
     }
 
-    // ÁÖ¹®¿¡ »ç¿ëµÈ ¸ðµç Àç·á¸¦ °è»êÇÏ¿© DB¿¡¼­ Â÷°¨
+    // ï¿½Ö¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½á¸¦ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ DBï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     private async Task SubtractInventory(Order order)
     {
-        Debug.Log("ÁÖ¹® È®Á¤: Àç°í Â÷°¨À» ½ÃÀÛÇÕ´Ï´Ù...");
+        Debug.Log("ï¿½Ö¹ï¿½ È®ï¿½ï¿½: ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½...");
 
-        // 0. ÀÎÁõ »óÅÂ È®ÀÎ (°¡Àå ÀÇ½ÉµÇ´Â ºÎºÐ)
+        // 0. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½Ç½ÉµÇ´ï¿½ ï¿½Îºï¿½)
         if (auth.CurrentUser == null)
         {
-            Debug.LogError("[Ä¡¸íÀû ¿À·ù] Àç°í Â÷°¨ ½ÃÁ¡¿¡ ·Î±×ÀÎÀÌ µÇ¾îÀÖÁö ¾Ê½À´Ï´Ù!");
+            Debug.LogError("[Ä¡ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê½ï¿½ï¿½Ï´ï¿½!");
             throw new Exception("User not authenticated");
         }
         else
         {
-            Debug.Log($"[ÀÎÁõ È®ÀÎ] »ç¿ëÀÚ ID: {auth.CurrentUser.UserId}");
+            Debug.Log($"[ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½] ï¿½ï¿½ï¿½ï¿½ï¿½ ID: {auth.CurrentUser.UserId}");
         }
 
         var totalCost = new Dictionary<string, long>();
-        var addonCosts = MenuData.GetAddonCosts(); // Áß¾Ó µ¥ÀÌÅÍ °¡Á®¿À±â
+        var addonCosts = MenuData.GetAddonCosts(); // ï¿½ß¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
-        // 1. Àå¹Ù±¸´ÏÀÇ ¸ðµç Àç·á ¼Ò¸ð·® °è»ê
+        // 1. ï¿½ï¿½Ù±ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ ï¿½ï¿½ï¿½
         foreach (var group in order.courseGroups)
         {
-            if (string.IsNullOrEmpty(group.courseType)) continue; // ¾ÈÀü ÀåÄ¡
+            if (string.IsNullOrEmpty(group.courseType)) continue; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
 
-            // Enum ÆÄ½Ì ½Ãµµ
+            // Enum ï¿½Ä½ï¿½ ï¿½Ãµï¿½
             if (!System.Enum.TryParse(group.courseType, out CourseType type))
             {
-                Debug.LogWarning($"¾Ë ¼ö ¾ø´Â ÄÚ½º Å¸ÀÔ: {group.courseType}");
+                Debug.LogWarning($"ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ú½ï¿½ Å¸ï¿½ï¿½: {group.courseType}");
                 continue;
             }
             var baseReqs = MenuData.GetCourseBaseRequirements(type);
 
             foreach (var detail in group.details)
             {
-                // ±âº» Àç·á
+                // ï¿½âº» ï¿½ï¿½ï¿½
                 foreach (var req in baseReqs)
                 {
                     if (!totalCost.ContainsKey(req.Key)) totalCost[req.Key] = 0;
                     totalCost[req.Key] += req.Value;
                 }
 
-                // Ãß°¡ Àç·á
+                // ï¿½ß°ï¿½ ï¿½ï¿½ï¿½
                 foreach (string addonKey in detail.addedItems)
                 {
                     if (addonCosts.TryGetValue(addonKey, out var costInfo))
@@ -194,11 +194,11 @@ public class OrderManager : MonoBehaviour
                     }
                     else
                     {
-                        Debug.LogWarning($"¾Ë ¼ö ¾ø´Â Ãß°¡ ¿É¼Ç Å°: {addonKey}");
+                        Debug.LogWarning($"ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½É¼ï¿½ Å°: {addonKey}");
                     }
                 }
 
-                // Á¦¿Ü Àç·á (È¯ºÒ)
+                // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ (È¯ï¿½ï¿½)
                 foreach (string removedKey in detail.removedItems)
                 {
                     var refund = MenuData.GetRefundInfo(type, removedKey);
@@ -211,27 +211,27 @@ public class OrderManager : MonoBehaviour
             }
         }
 
-        // 2. °è»êµÈ ÃÑ ¼Ò¸ð·®À» ±â¹ÝÀ¸·Î DB Æ®·£Àè¼Ç ½ÇÇà
+        // 2. ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ DB Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         List<Task> transactionTasks = new List<Task>();
         foreach (var item in totalCost)
         {
             string itemKey = item.Key;
             long amountToSubtract = item.Value;
 
-            if (amountToSubtract <= 0) continue; // 0 ÀÌÇÏ¸é Â÷°¨ÇÒ ÇÊ¿ä ¾øÀ½
+            if (amountToSubtract <= 0) continue; // 0 ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-            Debug.Log($"[Transaction] {itemKey} Àç°í {amountToSubtract} Â÷°¨ ½Ãµµ...");
+            Debug.Log($"[Transaction] {itemKey} ï¿½ï¿½ï¿½ {amountToSubtract} ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½...");
 
             DatabaseReference itemRef = dbReference.Child("inventory").Child(itemKey);
 
-            // °¢ Àç·á Ç×¸ñ¿¡ ´ëÇØ °³º° Æ®·£Àè¼Ç ½ÇÇà
+            // ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             Task transactionTask = itemRef.RunTransaction(data =>
             {
                 if (data.Value == null)
                 {
-                    // DB¿¡ ÇØ´ç Àç°í Ç×¸ñÀÌ ¾øÀ½. ¿À·ù·Î Áß´Ü.
-                    Debug.LogWarning($"Àç°í Â÷°¨ ½ÇÆÐ: {itemKey} Ç×¸ñÀÌ DB¿¡ ¾ø½À´Ï´Ù.");
-                    return TransactionResult.Success(data); // ¸ØÃßÁö ¾Ê°í ³Ñ¾î°¨
+                    // DBï¿½ï¿½ ï¿½Ø´ï¿½ ï¿½ï¿½ï¿½ ï¿½×¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß´ï¿½.
+                    Debug.LogWarning($"ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: {itemKey} ï¿½×¸ï¿½ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.");
+                    return TransactionResult.Success(data); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ ï¿½Ñ¾î°¨
                 }
 
                 long currentStock = Convert.ToInt64(data.Value);
@@ -241,17 +241,17 @@ public class OrderManager : MonoBehaviour
                 }
                 catch
                 {
-                    Debug.LogError($"[Çüº¯È¯ ¿À·ù] {itemKey} °ª: {data.Value}");
+                    Debug.LogError($"[ï¿½ï¿½ï¿½ï¿½È¯ ï¿½ï¿½ï¿½ï¿½] {itemKey} ï¿½ï¿½: {data.Value}");
                     return TransactionResult.Abort();
                 }
 
                 if (currentStock < amountToSubtract)
                 {
-                    Debug.LogWarning($"[Àç°í ºÎÁ·] {itemKey} (³²À½: {currentStock}, ÇÊ¿ä: {amountToSubtract})");
+                    Debug.LogWarning($"[ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½] {itemKey} (ï¿½ï¿½ï¿½ï¿½: {currentStock}, ï¿½Ê¿ï¿½: {amountToSubtract})");
                     return TransactionResult.Abort();
                 }
 
-                // Àç°í Â÷°¨
+                // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 data.Value = currentStock - amountToSubtract;
                 return TransactionResult.Success(data);
             });
@@ -259,16 +259,16 @@ public class OrderManager : MonoBehaviour
             transactionTasks.Add(transactionTask);
         }
 
-        // 3. ¸ðµç Àç°í Â÷°¨ Æ®·£Àè¼ÇÀÌ ¿Ï·áµÉ ¶§±îÁö ±â´Ù¸²
-        // ¸¸¾à ÇÏ³ª¶óµµ Abort()µÇ¸é, Task.WhenAllÀÌ ¿¹¿Ü(DatabaseException)¸¦ ´øÁý´Ï´Ù.
+        // 3. ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ù¸ï¿½
+        // ï¿½ï¿½ï¿½ï¿½ ï¿½Ï³ï¿½ï¿½ï¿½ Abort()ï¿½Ç¸ï¿½, Task.WhenAllï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½(DatabaseException)ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
         try
         {
             await Task.WhenAll(transactionTasks);
-            Debug.Log("¸ðµç Àç°í Â÷°¨ ¿Ï·á.");
+            Debug.Log("ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½.");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[Æ®·£Àè¼Ç ½ÇÆÐ] »ó¼¼ ³»¿ë: {ex.ToString()}");
+            Debug.LogError($"[Æ®ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½] ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: {ex.ToString()}");
             throw;
         }
     }

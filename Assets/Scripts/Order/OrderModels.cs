@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-// Firebase DBÀÇ Àç°í(inventory) Å° ÀÌ¸§µéÀ» »ó¼ö·Î °ü¸®
+// Firebase DBì—ì„œ ì¬ê³ (inventory) í‚¤ ì´ë¦„ë“¤ì„ ìƒìˆ˜ë¡œ ê´€ë¦¬
 public static class InventoryKeys
 {
     public const string SteakMeatG = "steakMeat_g";
@@ -16,10 +16,10 @@ public static class InventoryKeys
     public const string ChampagneBottles = "champagne_bottles";
 }
 
-// Ãß°¡/Á¦¿Ü Ç×¸ñÀÇ Å°µéÀ» °ü¸®ÇÏ´Â »ó¼ö Å¬·¡½º
+// ì¶”ê°€/ì‚­ì œ ì˜µì…˜ì˜ í‚¤ë“¤ì„ ê´€ë¦¬í•˜ëŠ” ìƒìˆ˜ í´ë˜ìŠ¤
 public static class AddonKeys
 {
-    // Ãß°¡ Ç×¸ñ Å°
+    // ì¶”ê°€ ì˜µì…˜ í‚¤
     public const string AddSteak80g = "AddSteak80g";
     public const string AddSteak160g = "AddSteak160g";
     public const string AddMiniCorn2P = "AddMiniCorn2P";
@@ -32,10 +32,10 @@ public static class AddonKeys
     public const string AddWineGlass = "AddWineGlass";
     public const string AddWineBottle = "AddWineBottle";
     public const string AddCoffeeGlass = "AddCoffeeGlass";
-    public const string AddCoffeePot = "AddCoffeePot"; 
+    public const string AddCoffeePot = "AddCoffeePot";
     public const string AddChampagneBottle = "AddChampagneBottle";
 
-    // Á¦¿Ü Ç×¸ñ Å°
+    // ì œê±° ì˜µì…˜ í‚¤
     public const string RemoveWine = "RemoveWine";
     public const string RemoveCoffee = "RemoveCoffee";
     public const string RemoveSalad = "RemoveSalad";
@@ -44,10 +44,10 @@ public static class AddonKeys
     public const string RemoveBaguette = "RemoveBaguette";
 }
 
-// ¸Ş´º ·¹½ÃÇÇ, Ãß°¡/Á¦¿Ü Ç×¸ñÀÇ Àç·á/È¯ºÒ Á¤º¸¸¦ Áß¾Ó¿¡¼­ °ü¸®ÇÏ´Â static Å¬·¡½º
+// ë©”ë‰´ êµ¬ì„±, ì¶”ê°€/ì‚­ì œ ì˜µì…˜ì˜ ì¬ê³ /í™˜ë¶ˆ ì •ë³´ë¥¼ ì¤‘ì•™ì—ì„œ ê´€ë¦¬í•˜ëŠ” static í´ë˜ìŠ¤
 public static class MenuData
 {
-    // 'Ãß°¡' Ç×¸ñÀÇ Àç°í ¼Ò¸ğ·® Á¤ÀÇ¸¦ À§ÇÑ ÇïÆÛ Å¬·¡½º
+    // 'ì¶”ê°€' ì˜µì…˜ í•˜ë‚˜ê°€ ì†Œëª¨í•˜ëŠ” ì¬ê³  ì •ë³´
     public class AddonInventoryInfo
     {
         public string InventoryKey;
@@ -55,7 +55,7 @@ public static class MenuData
         public AddonInventoryInfo(string key, long amount) { InventoryKey = key; Amount = amount; }
     }
 
-    // ÄÚ½º Å¸ÀÔ¿¡ µû¶ó ÇÊ¿äÇÑ ±âº» ½ÄÀç·á µñ¼Å³Ê¸®¸¦ ¹İÈ¯
+    // ì½”ìŠ¤ íƒ€ì…ì— ë”°ë¥¸ ê¸°ë³¸ ì¬ê³  ìš”êµ¬ëŸ‰ ë°˜í™˜
     public static Dictionary<string, long> GetCourseBaseRequirements(CourseType courseType)
     {
         var requirements = new Dictionary<string, long>();
@@ -63,7 +63,7 @@ public static class MenuData
         switch (courseType)
         {
             case CourseType.ValentineDinner:
-                requirements.Add(InventoryKeys.WineServings, 5); // ¿ÍÀÎ 1º´ == 5ÀÜ
+                requirements.Add(InventoryKeys.WineServings, 5); // ì™€ì¸ 1ë³‘ == 5ì”
                 requirements.Add(InventoryKeys.SteakMeatG, 200);
                 break;
 
@@ -84,41 +84,41 @@ public static class MenuData
             case CourseType.ChampagneFeastDinner:
                 requirements.Add(InventoryKeys.ChampagneBottles, 1);
                 requirements.Add(InventoryKeys.BaguettePcs, 4);
-                requirements.Add(InventoryKeys.CoffeeServings, 4); // Ä¿ÇÇ 1 Æ÷Æ® == 4ÀÜ
+                requirements.Add(InventoryKeys.CoffeeServings, 4); // ì»¤í”¼ 1pot == 4ì”
                 requirements.Add(InventoryKeys.WineServings, 5);
                 requirements.Add(InventoryKeys.SteakMeatG, 400);
                 break;
 
             default:
-                // Á¤ÀÇµÇÁö ¾ÊÀº ÄÚ½º Å¸ÀÔÀÇ °æ¿ì, ºó µñ¼Å³Ê¸® ¹İÈ¯
+                // ì •ì˜ë˜ì§€ ì•Šì€ ì½”ìŠ¤ëŠ” ì¬ê³  ìš”êµ¬ ì—†ìŒ
                 break;
         }
         return requirements;
     }
 
-    // 'Ãß°¡' Ç×¸ñ(AddonKey)°ú Àç·á ¼Ò¸ğ·®(InventoryInfo) ¸ÊÀ» ¹İÈ¯
+    // 'ì¶”ê°€' ì˜µì…˜ í‚¤(AddonKey) â†’ ì¬ê³  í‚¤/ìˆ˜ëŸ‰ ë§¤í•‘
     public static Dictionary<string, AddonInventoryInfo> GetAddonCosts()
     {
         return new Dictionary<string, AddonInventoryInfo>
         {
-            { AddonKeys.AddSteak80g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 80) },
-            { AddonKeys.AddSteak160g, new AddonInventoryInfo(InventoryKeys.SteakMeatG, 160) },
-            { AddonKeys.AddMiniCorn2P, new AddonInventoryInfo(InventoryKeys.MiniCornPcs, 2) },
-            { AddonKeys.AddPotatoSalad180g, new AddonInventoryInfo(InventoryKeys.PotatoSaladG, 180) },
-            { AddonKeys.AddSalad70g, new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70) },
-            { AddonKeys.AddBacon18g, new AddonInventoryInfo(InventoryKeys.BaconG, 18) },
-            { AddonKeys.AddScrambledEggs, new AddonInventoryInfo(InventoryKeys.EggsPcs, 1) },
-            { AddonKeys.AddBaguette3P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 3) },
-            { AddonKeys.AddBaguette6P, new AddonInventoryInfo(InventoryKeys.BaguettePcs, 6) },
-            { AddonKeys.AddWineGlass, new AddonInventoryInfo(InventoryKeys.WineServings, 1) },
-            { AddonKeys.AddWineBottle, new AddonInventoryInfo(InventoryKeys.WineServings, 5) },
-            { AddonKeys.AddCoffeeGlass, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1) },
-            { AddonKeys.AddCoffeePot, new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4) },
-            { AddonKeys.AddChampagneBottle, new AddonInventoryInfo(InventoryKeys.ChampagneBottles, 1) }
+            { AddonKeys.AddSteak80g,         new AddonInventoryInfo(InventoryKeys.SteakMeatG, 80) },
+            { AddonKeys.AddSteak160g,        new AddonInventoryInfo(InventoryKeys.SteakMeatG, 160) },
+            { AddonKeys.AddMiniCorn2P,       new AddonInventoryInfo(InventoryKeys.MiniCornPcs, 2) },
+            { AddonKeys.AddPotatoSalad180g,  new AddonInventoryInfo(InventoryKeys.PotatoSaladG, 180) },
+            { AddonKeys.AddSalad70g,         new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70) },
+            { AddonKeys.AddBacon18g,         new AddonInventoryInfo(InventoryKeys.BaconG, 18) },
+            { AddonKeys.AddScrambledEggs,    new AddonInventoryInfo(InventoryKeys.EggsPcs, 1) },
+            { AddonKeys.AddBaguette3P,       new AddonInventoryInfo(InventoryKeys.BaguettePcs, 3) },
+            { AddonKeys.AddBaguette6P,       new AddonInventoryInfo(InventoryKeys.BaguettePcs, 6) },
+            { AddonKeys.AddWineGlass,        new AddonInventoryInfo(InventoryKeys.WineServings, 1) },
+            { AddonKeys.AddWineBottle,       new AddonInventoryInfo(InventoryKeys.WineServings, 5) },
+            { AddonKeys.AddCoffeeGlass,      new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1) },
+            { AddonKeys.AddCoffeePot,        new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4) },
+            { AddonKeys.AddChampagneBottle,  new AddonInventoryInfo(InventoryKeys.ChampagneBottles, 1) }
         };
     }
 
-    // 'Á¦¿Ü' Å°(AddonKey)¿¡ µû¶ó È¯ºÒµÇ´Â Àç·á(InventoryKey)¿Í ¼ö·®(Amount)À» ¹İÈ¯
+    // 'ì œê±°' ì˜µì…˜ì— ëŒ€í•´ í™˜ë¶ˆë˜ëŠ” ì¬ê³  ì •ë³´
     public static AddonInventoryInfo GetRefundInfo(CourseType courseType, string removeKey)
     {
         switch (courseType)
@@ -126,20 +126,23 @@ public static class MenuData
             case CourseType.ValentineDinner:
                 if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5);
                 break;
+
             case CourseType.FrenchDinner:
                 if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 1);
-                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 1);
-                if (removeKey == AddonKeys.RemoveSalad) return new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70);
+                if (removeKey == AddonKeys.RemoveWine)   return new AddonInventoryInfo(InventoryKeys.WineServings, 1);
+                if (removeKey == AddonKeys.RemoveSalad)  return new AddonInventoryInfo(InventoryKeys.SaladGreensG, 70);
                 break;
+
             case CourseType.EnglishDinner:
-                if (removeKey == AddonKeys.RemoveEggs) return new AddonInventoryInfo(InventoryKeys.EggsPcs, 2);
-                if (removeKey == AddonKeys.RemoveBacon) return new AddonInventoryInfo(InventoryKeys.BaconG, 18);
+                if (removeKey == AddonKeys.RemoveEggs)     return new AddonInventoryInfo(InventoryKeys.EggsPcs, 2);
+                if (removeKey == AddonKeys.RemoveBacon)    return new AddonInventoryInfo(InventoryKeys.BaconG, 18);
                 if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 1);
                 break;
+
             case CourseType.ChampagneFeastDinner:
                 if (removeKey == AddonKeys.RemoveBaguette) return new AddonInventoryInfo(InventoryKeys.BaguettePcs, 4);
-                if (removeKey == AddonKeys.RemoveCoffee) return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4);
-                if (removeKey == AddonKeys.RemoveWine) return new AddonInventoryInfo(InventoryKeys.WineServings, 5);
+                if (removeKey == AddonKeys.RemoveCoffee)   return new AddonInventoryInfo(InventoryKeys.CoffeeServings, 4);
+                if (removeKey == AddonKeys.RemoveWine)     return new AddonInventoryInfo(InventoryKeys.WineServings, 5);
                 break;
         }
         return null;
@@ -158,10 +161,10 @@ public static class MenuData
     {
         switch (type)
         {
-            case CourseType.ValentineDinner: return "¹ß·»Å¸ÀÎ µğ³Ê";
-            case CourseType.FrenchDinner: return "ÇÁ·»Ä¡ µğ³Ê";
-            case CourseType.EnglishDinner: return "À×±Û¸®½Ã µğ³Ê";
-            case CourseType.ChampagneFeastDinner: return "¼¤ÆäÀÎ ÃàÁ¦ µğ³Ê";
+            case CourseType.ValentineDinner:       return "ë°œë Œíƒ€ì¸ ë””ë„ˆ";
+            case CourseType.FrenchDinner:          return "í”„ë Œì¹˜ ë””ë„ˆ";
+            case CourseType.EnglishDinner:         return "ì‰ê¸€ë¦¬ì‹œ ë””ë„ˆ";
+            case CourseType.ChampagneFeastDinner:  return "ìƒ´í˜ì¸ í”¼ìŠ¤íŠ¸ ë””ë„ˆ";
             default: return type.ToString();
         }
     }
@@ -170,34 +173,34 @@ public static class MenuData
     {
         switch (key)
         {
-            case AddonKeys.AddSteak80g: return "½ºÅ×ÀÌÅ© 80g";
-            case AddonKeys.AddSteak160g: return "½ºÅ×ÀÌÅ© 160g";
-            case AddonKeys.AddMiniCorn2P: return "¹Ì´Ï ¿Á¼ö¼ö 2Á¶°¢";
-            case AddonKeys.AddPotatoSalad180g: return "°¨ÀÚ»ø·¯µå 180g";
-            case AddonKeys.AddSalad70g: return "»ø·¯µå 70g";
-            case AddonKeys.AddBacon18g: return "º£ÀÌÄÁ 18g";
-            case AddonKeys.AddScrambledEggs: return "¿¡±× ½ºÅ©·¥ºí";
-            case AddonKeys.AddBaguette3P: return "¹Ù°ÔÆ®»§ 3°³";
-            case AddonKeys.AddBaguette6P: return "¹Ù°ÔÆ®»§ 6°³";
-            case AddonKeys.AddWineGlass: return "¿ÍÀÎ 1ÀÜ";
-            case AddonKeys.AddWineBottle: return "¿ÍÀÎ 1º´";
-            case AddonKeys.AddCoffeeGlass: return "Ä¿ÇÇ 1ÀÜ";
-            case AddonKeys.AddCoffeePot: return "Ä¿ÇÇ 1Æ÷Æ®";
-            case AddonKeys.AddChampagneBottle: return "¼¤ÆäÀÎ 1º´";
+            case AddonKeys.AddSteak80g:        return "ì•ˆì‹¬ ìŠ¤í…Œì´í¬ 80g";
+            case AddonKeys.AddSteak160g:       return "ì•ˆì‹¬ ìŠ¤í…Œì´í¬ 160g";
+            case AddonKeys.AddMiniCorn2P:      return "ë¯¸ë‹ˆì½˜ 2ì¡°ê°";
+            case AddonKeys.AddPotatoSalad180g: return "ê°ììƒëŸ¬ë“œ 180g";
+            case AddonKeys.AddSalad70g:        return "ìƒëŸ¬ë“œ 70g";
+            case AddonKeys.AddBacon18g:        return "ë² ì´ì»¨ 18g";
+            case AddonKeys.AddScrambledEggs:   return "ìŠ¤í¬ë¨ë¸” ì—ê·¸";
+            case AddonKeys.AddBaguette3P:      return "ë°”ê²ŒíŠ¸ 3ì¡°ê°";
+            case AddonKeys.AddBaguette6P:      return "ë°”ê²ŒíŠ¸ 6ì¡°ê°";
+            case AddonKeys.AddWineGlass:       return "ì™€ì¸ 1ì”";
+            case AddonKeys.AddWineBottle:      return "ì™€ì¸ 1ë³‘";
+            case AddonKeys.AddCoffeeGlass:     return "ì»¤í”¼ 1ì”";
+            case AddonKeys.AddCoffeePot:       return "ì»¤í”¼ 1í¬íŠ¸";
+            case AddonKeys.AddChampagneBottle: return "ìƒ´í˜ì¸ 1ë³‘";
 
-            case AddonKeys.RemoveWine: return "¿ÍÀÎ";
-            case AddonKeys.RemoveCoffee: return "Ä¿ÇÇ";
-            case AddonKeys.RemoveSalad: return "»ø·¯µå";
-            case AddonKeys.RemoveEggs: return "°è¶õ";
-            case AddonKeys.RemoveBacon: return "º£ÀÌÄÁ";
-            case AddonKeys.RemoveBaguette: return "¹Ù°ÔÆ®»§";
+            case AddonKeys.RemoveWine:     return "ì™€ì¸ ì œê±°";
+            case AddonKeys.RemoveCoffee:   return "ì»¤í”¼ ì œê±°";
+            case AddonKeys.RemoveSalad:    return "ìƒëŸ¬ë“œ ì œê±°";
+            case AddonKeys.RemoveEggs:     return "ê³„ë€ ì œê±°";
+            case AddonKeys.RemoveBacon:    return "ë² ì´ì»¨ ì œê±°";
+            case AddonKeys.RemoveBaguette: return "ë°”ê²ŒíŠ¸ ì œê±°";
 
-            default: return key; // ¸ÅÇÎ ¾øÀ¸¸é Å° ±×´ë·Î ¹İÈ¯
+            default: return key;
         }
     }
 }
 
-// ÁÖ¹®ÇÒ ¼ö ÀÖ´Â ÄÚ½ºÀÇ Á¾·ù
+// ì£¼ë¬¸ì—ì„œ ì„ íƒ ê°€ëŠ¥í•œ ì½”ìŠ¤ ì¢…ë¥˜
 public enum CourseType
 {
     ValentineDinner,
@@ -206,34 +209,34 @@ public enum CourseType
     ChampagneFeastDinner
 }
 
-// ÄÚ½º¿¡ Àû¿ëÇÒ ½ºÅ¸ÀÏÀÇ Á¾·ù
+// ì½”ìŠ¤ì˜ ìŠ¤íƒ€ì¼(ì—°ì¶œ ì •ë„ ë“±)
 public enum StyleType
 {
-    None, // ¹Ì¼±ÅÃ
+    None,   // ë¯¸ì„ íƒ
     Simple,
     Grand,
     Deluxe
 }
 
-// ÁÖ¹®ÀÇ ÇöÀç »óÅÂ
+// ì£¼ë¬¸ ìƒíƒœ
 public enum OrderStatus
 {
-    Pending,     // 0 (Àå¹Ù±¸´Ï »óÅÂ)
-    Reserved,    // 1 (½Å±Ô! ¿¹¾à È®Á¤ »óÅÂ)
-    Confirmed,   // 2 (Áï½Ã ÁÖ¹® È®Á¤ »óÅÂ)
-    Cooking,     // 3 (Á¶¸® Áß)
-    Delivering,  // 4 (¹è´Ş Áß)
-    Completed,   // 5 (¹è´Ş ¿Ï·á)
-    Canceled     // 6 (Ãë¼Ò µÊ) -> 251205 Ãß°¡
+    Pending,     // 0 (ì¥ë°”êµ¬ë‹ˆì—ë§Œ ìˆëŠ” ìƒíƒœ)
+    Reserved,    // 1 (ì˜ˆì•½ ì ‘ìˆ˜)
+    Confirmed,   // 2 (ì¦‰ì‹œ ì£¼ë¬¸ í™•ì •)
+    Cooking,     // 3 (ì¡°ë¦¬ ì¤‘)
+    Delivering,  // 4 (ë°°ë‹¬ ì¤‘)
+    Completed,   // 5 (ë°°ë‹¬ ì™„ë£Œ)
+    Canceled     // 6 (ì£¼ë¬¸ ì·¨ì†Œë¨)
 }
 
-// °¢ ÄÚ½ºº° »ó¼¼ ¼³Á¤ (½ºÅ¸ÀÏ, ¿äÃ»»çÇ× µî)
+// ì½”ìŠ¤ í•˜ë‚˜ì˜ ìƒì„¸ ì˜µì…˜(ìŠ¤íƒ€ì¼, ì¶”ê°€/ì œê±° í•­ëª© ë“±)
 [Serializable]
 public class CourseDetail
 {
     public StyleType style;
-    public List<string> addedItems;    // Ãß°¡µÈ Ç×¸ñ ¸ñ·Ï (AddonKeys »ç¿ë)
-    public List<string> removedItems;  // Á¦¿ÜµÈ Ç×¸ñ ¸ñ·Ï (AddonKeys »ç¿ë)
+    public List<string> addedItems;    // ì¶”ê°€ëœ ì˜µì…˜ í‚¤ë“¤(AddonKeys)
+    public List<string> removedItems;  // ì œê±°ëœ ì˜µì…˜ í‚¤ë“¤(AddonKeys)
 
     public CourseDetail()
     {
@@ -243,13 +246,12 @@ public class CourseDetail
     }
 }
 
-// JsonUtility È£È¯À» À§ÇØ »ç¿ë µû·Î class·Î ¸¸µé¾î ÁÖ¹®À» ±¸ºĞ
-// (¿¹: "ValentineDinner" ±×·ì / "FrenchDinner" ±×·ì)
+// ê°™ì€ ì½”ìŠ¤ íƒ€ì…(ValentineDinner ë“±)ì˜ ë¬¶ìŒ
 [Serializable]
 public class CourseGroup
 {
-    public string courseType; // CourseType.ToString() °ª (¿¹: "ValentineDinner")
-    public List<CourseDetail> details; // ÀÌ ÄÚ½º¸¦ ¿©·¯ °³ ½ÃÄ×À» °æ¿ìÀÇ ¸®½ºÆ® (¿¹: ¹ß·»Å¸ÀÎ 2°³)
+    public string courseType;          // CourseType.ToString() (ì˜ˆ: "ValentineDinner")
+    public List<CourseDetail> details; // í•´ë‹¹ ì½”ìŠ¤ë¥¼ ëª‡ ê°œ ì£¼ë¬¸í–ˆëŠ”ì§€ì— ëŒ€í•œ ë¦¬ìŠ¤íŠ¸
 
     public CourseGroup(string type)
     {
@@ -258,7 +260,25 @@ public class CourseGroup
     }
 }
 
-// ÇÏ³ªÀÇ ÁÖ¹® °´Ã¼ (È®Àå °¡´É)
+// ğŸ”¹ ì¿ í° ë°ì´í„°
+[Serializable]
+public class Coupon
+{
+    public string couponId;        // ì¿ í° ID (ì˜ˆ: "WELCOME10")
+    public long discountAmount;    // í• ì¸ìœ¨(%) ë˜ëŠ” ê³ ì • ê¸ˆì•¡ ë“±, í˜„ì¬ëŠ” %ë¡œ ì‚¬ìš©
+    public bool used;              // ì‚¬ìš© ì—¬ë¶€
+
+    public Coupon() { }
+
+    public Coupon(string couponId, long discountAmount, bool used)
+    {
+        this.couponId = couponId;
+        this.discountAmount = discountAmount;
+        this.used = used;
+    }
+}
+
+// í•œ ê±´ì˜ ì£¼ë¬¸ ì „ì²´ë¥¼ ë‚˜íƒ€ë‚´ëŠ” í´ë˜ìŠ¤
 [Serializable]
 public class Order
 {
@@ -266,53 +286,58 @@ public class Order
     public string userId;
     public OrderStatus status;
     public long orderTimestamp;
-    public string globalRequests; // Àü¿ª ¿äÃ»»çÇ×
+    public string globalRequests;      // ì „ì²´ ì£¼ë¬¸ì— ëŒ€í•œ ìš”ì²­ì‚¬í•­(ë¬¸ìì—´)
 
     public List<CourseGroup> courseGroups;
 
-    // °¡°İ °è»ê ·ÎÁ÷Àº PriceManager°¡ ´ã´ç. º¯¼ö¸¸ À¯Áö.
+    // PriceManagerì—ì„œ ê³„ì‚°í•˜ëŠ” ì´ ê¸ˆì•¡(í• ì¸ ì „ ê¸°ì¤€ ê¸ˆì•¡)
     public long totalPrice;
 
-    // ¹è´Ş ¿¹¾à ³¯Â¥
+    // í• ì¸ ì ìš© í›„ ìµœì¢… ê²°ì œ ê¸ˆì•¡ (ì¿ í°/í”„ë¡œëª¨ì…˜ ë°˜ì˜ í›„)
+    public long totalDiscountPrice;
+
+    // ì˜ˆì•½ì¼(ë¬¸ìì—´ yyyy-MM-dd)
     public string deliveryDate;
-    // ÀÌ ÁÖ¹®ÀÌ Áï½Ã ¹è´ŞÀÎÁö, ¿¹¾àÀÎÁö ¿©ºÎ
+
+    // ì˜ˆì•½ ì£¼ë¬¸ ì—¬ë¶€(trueë©´ ì˜ˆì•½, falseë©´ ì¦‰ì‹œ)
     public bool isReservation;
+
+    // ğŸ”¹ ì¿ í° ë¦¬ìŠ¤íŠ¸ (ì—¬ëŸ¬ ê°œë¥¼ ì§€ì›í•˜ê³  ì‹¶ìœ¼ë©´ ë¦¬ìŠ¤íŠ¸, ì§€ê¸ˆì€ ë³´í†µ 1ê°œë§Œ ì‚¬ìš©)
+    public List<Coupon> coupons;
 
     public Order(string userId)
     {
         this.userId = userId;
-        this.orderId = Guid.NewGuid().ToString(); // ÀÓ½Ã °íÀ¯ ID
+        this.orderId = Guid.NewGuid().ToString();
         this.status = OrderStatus.Pending;
         this.courseGroups = new List<CourseGroup>();
-        this.globalRequests = ""; // ÃÊ±âÈ­
+        this.globalRequests = "";
         this.totalPrice = 0;
-
-        // ±âº»°ªÀº '¿À´Ã' 'Áï½Ã ¹è´Ş'
+        this.totalDiscountPrice = 0;
         this.deliveryDate = DateTime.Today.ToString("yyyy-MM-dd");
         this.isReservation = false;
+        this.coupons = new List<Coupon>();
+        this.orderTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
-    // »õ ÄÚ½º¸¦ ÁÖ¹®¿¡ Ãß°¡ÇÏ´Â ÇÔ¼ö
+    // ì½”ìŠ¤ í•˜ë‚˜ë¥¼ ì¶”ê°€
     public void AddCourse(CourseType type)
     {
         string courseKey = type.ToString();
-        CourseDetail newCourseDetail = new CourseDetail(); // »õ »ó¼¼ ¼³Á¤ °´Ã¼ »ı¼º
+        CourseDetail newCourseDetail = new CourseDetail();
 
-        // ÀÌ¹Ì ÀÌ Å¸ÀÔÀÇ ÄÚ½º°¡ ÁÖ¹®¿¡ ÀÖ´ÂÁö È®ÀÎ
+        // ê°™ì€ íƒ€ì…ì˜ ì½”ìŠ¤ ê·¸ë£¹ì´ ì´ë¯¸ ìˆëŠ”ì§€ í™•ì¸
         CourseGroup group = courseGroups.Find(g => g.courseType == courseKey);
-
         if (group == null)
         {
-            // ¾ø´Ù¸é »õ·Î CourseGroup »ı¼º
             group = new CourseGroup(courseKey);
             courseGroups.Add(group);
         }
 
-        // »õ CourseDetailÀ» ÀÌ ±×·ì¿¡ Ãß°¡ (¿¹: ¹ß·»Å¸ÀÎ µğ³Ê 1°³ -> 2°³)
         group.details.Add(newCourseDetail);
     }
 
-    // ÃÑ ÁÖ¹®ÇÑ ÄÚ½º °³¼ö¸¦ ¹İÈ¯ÇÏ´Â ÇÔ¼ö
+    // ì „ì²´ ì½”ìŠ¤ ê°œìˆ˜ ë°˜í™˜
     public int GetTotalCourseCount()
     {
         int total = 0;
@@ -323,17 +348,14 @@ public class Order
         return total;
     }
 
-    // ¹æ±İ Ãß°¡ÇÑ(°¡Àå ¸¶Áö¸·ÀÇ) CourseDetail °´Ã¼¸¦ ¹İÈ¯ÇÏ´Â ÇÔ¼ö
-    // DinnerDetailManager°¡ ÇöÀç ¼öÁ¤ÇÒ °´Ã¼¸¦ Ã£´Â µ¥ »ç¿ë
+    // ê°€ì¥ ë§ˆì§€ë§‰ì— ì¶”ê°€ëœ ì½”ìŠ¤ í•˜ë‚˜ ë°˜í™˜
     public CourseDetail GetLastAddedCourseDetail()
     {
         if (courseGroups.Count == 0) return null;
 
-        // °¡Àå ¸¶Áö¸·¿¡ Ãß°¡µÈ ÄÚ½º ±×·ì (¿¹: "ValentineDinner" ±×·ì)
         CourseGroup lastGroup = courseGroups[courseGroups.Count - 1];
         if (lastGroup.details.Count == 0) return null;
 
-        // ±× ±×·ìÀÇ °¡Àå ¸¶Áö¸·¿¡ Ãß°¡µÈ CourseDetail (¿¹: µÎ ¹øÂ° ¹ß·»Å¸ÀÎ µğ³Ê)
         return lastGroup.details[lastGroup.details.Count - 1];
     }
 }
