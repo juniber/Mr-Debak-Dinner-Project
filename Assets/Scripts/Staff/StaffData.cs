@@ -30,7 +30,10 @@ public class StoreStatusData
     public bool isOpen;
     public string openTime;
     public string closeTime;
-    public float completionRate;
-    public int totalSales;
+    public float completionRate; // 주문 완료율
+    public int totalSales; // 총 매출액
+
+    public long totalOrderCount;     // 총 주문 수 
+    public long completedOrderCount; // 완료된 주문 수
 }
 

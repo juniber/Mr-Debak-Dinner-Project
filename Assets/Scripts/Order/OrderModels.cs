@@ -74,6 +74,7 @@ public static class MenuData
                 requirements.Add(InventoryKeys.WineServings, 1);
                 requirements.Add(InventoryKeys.SaladGreensG, 70);
                 requirements.Add(InventoryKeys.SteakMeatG, 200);
+
                 break;
 
             case CourseType.EnglishDinner:
@@ -225,8 +226,10 @@ public enum OrderStatus
 {
     Pending,     // 0 (장바구니에만 있는 상태)
     Reserved,    // 1 (예약 접수)
-    Confirmed,   // 2 (즉시 주문 확정)
+    Placed,      // 2 (즉시 주문, 예약 접수된 주문(당일))
+    Confirmed,   // 직원에 의해 확인된 주문
     Cooking,     // 3 (조리 중)
+    Prepared,    // 4 (조리 완료 후 배달 준비 완료)
     Delivering,  // 4 (배달 중)
     Completed,   // 5 (배달 완료)
     Canceled     // 6 (주문 취소됨)

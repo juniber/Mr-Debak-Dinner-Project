@@ -107,7 +107,7 @@ public class OrderManager : MonoBehaviour
         }
         else
         {
-            CurrentOrder.status = OrderStatus.Confirmed; // (Enum �� 2)
+            CurrentOrder.status = OrderStatus.Placed; // (Enum �� 2)
         }
         CurrentOrder.orderTimestamp = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         CurrentOrder.isReservation = isReservation;

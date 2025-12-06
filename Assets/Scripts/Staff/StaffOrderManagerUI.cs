@@ -55,12 +55,14 @@ public class StaffOrderManagerUI : MonoBehaviour
             {
                 // [신규 주문 패널] 예약(1) 혹은 즉시주문확정(2)
                 case OrderStatus.Reserved:
-                case OrderStatus.Confirmed:
+                case OrderStatus.Placed:
                     CreateOrderItem(order, newOrderContainer);
                     break;
 
                 // [진행중 패널] 조리중(3) 혹은 배달중(4)
+                case OrderStatus.Confirmed:
                 case OrderStatus.Cooking:
+                case OrderStatus.Prepared:
                 case OrderStatus.Delivering:
                     CreateOrderItem(order, processingContainer);
                     break;

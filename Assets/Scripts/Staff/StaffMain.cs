@@ -18,10 +18,10 @@ public class StaffMain : MonoBehaviour
     [SerializeField] private TextMeshProUGUI completionRateText;
     [SerializeField] private TextMeshProUGUI salesText;
 
-    [Header("3. 근무 현황 패널 (계층 구조 반영)")]
-    [SerializeField] private Transform contentPanel;        // 세로로 줄(Row)들이 쌓일 부모 (Vertical Layout Group)
-    [SerializeField] private GameObject rowPrefab;          // 가로 한 줄 프리팹 (Horizontal Layout Group)
-    [SerializeField] private StaffMain_SlotUI slotPrefab;        // 직원 개별 슬롯 프리팹
+    [Header("3. 근무 현황 패널")]
+    [SerializeField] private Transform contentPanel;       
+    [SerializeField] private GameObject rowPrefab;          
+    [SerializeField] private StaffMain_SlotUI slotPrefab;       
 
     // 최대 표시 인원수 제한
     private const int MAX_STAFF_DISPLAY = 6;
@@ -44,8 +44,15 @@ public class StaffMain : MonoBehaviour
     {
         statusText.text = data.isOpen ? "영업중" : "영업종료";
         timeText.text = $"영업 시간 : {data.openTime} - {data.closeTime}";
-        completionRateText.text = $"주문 완료율 : {data.completionRate}%";
         salesText.text = $"매출액 : {data.totalSales:N0}원";
+
+        float rate = 0f;
+        if (data.totalOrderCount > 0)
+        {
+            rate = (float)data.completedOrderCount / data.totalOrderCount * 100f;
+        }
+
+        completionRateText.text = $"주문 완료율 : {rate:F1}%";
     }
 
     private void UpdateStaffList(List<StaffData> staffList)
@@ -142,13 +149,23 @@ public class StaffMain : MonoBehaviour
             if (snapshot.Child("totalSales").Value != null)
                 int.TryParse(snapshot.Child("totalSales").Value.ToString(), out totalSales);
 
+            long totalOrders = 0;
+            if (snapshot.Child("totalOrderCount").Value != null)
+                long.TryParse(snapshot.Child("totalOrderCount").Value.ToString(), out totalOrders);
+
+            long completedOrders = 0;
+            if (snapshot.Child("completedOrderCount").Value != null)
+                long.TryParse(snapshot.Child("completedOrderCount").Value.ToString(), out completedOrders);
+
             return new StoreStatusData
             {
                 isOpen = isOpen,
                 openTime = openTime,
                 closeTime = closeTime,
                 completionRate = completionRate,
-                totalSales = totalSales
+                totalSales = totalSales,
+                totalOrderCount = totalOrders,
+                completedOrderCount = completedOrders
             };
         }
         return null;

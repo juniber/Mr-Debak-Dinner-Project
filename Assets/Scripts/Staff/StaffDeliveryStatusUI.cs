@@ -5,10 +5,11 @@ using Firebase.Auth;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-public class SDeliveryStatusPanel : MonoBehaviour
+public class StaffDeliveryStatusUI : MonoBehaviour
 {
-    [Header("Container")]
-    [SerializeField] private Transform deliveryContainer;
+    [Header("Containers")]
+    [SerializeField] private Transform availableContainer;   // 대기 주문 (DeliveryContainer)
+    [SerializeField] private Transform myDeliveryContainer;  // 내 배달 주문 (새로 만든 것)
     [SerializeField] private GameObject deliveryItemPrefab;
 
     [Header("Rider Status Buttons")]
@@ -39,46 +40,80 @@ public class SDeliveryStatusPanel : MonoBehaviour
         LoadDeliveryOrders();
     }
 
+    // --- 1. 주문 목록 불러오기 (쿼리 2번 실행) ---
     private async void LoadDeliveryOrders()
     {
-        ClearContainer();
+        // 1. 기존 목록 초기화
+        ClearContainer(availableContainer);
+        ClearContainer(myDeliveryContainer);
 
-        var query = dbReference.Child("orders").OrderByChild("status").EqualTo((int)OrderStatus.Delivering);
-        var snapshot = await query.GetValueAsync();
+        // 2. orders 노드 통째로 가져오기 (쿼리 조건 없음)
+        var snapshot = await dbReference.Child("orders").GetValueAsync();
 
         if (snapshot.Exists)
         {
             foreach (var child in snapshot.Children)
             {
-                // 수동 파싱 (GetRawJson 오류 방지)
+                // 데이터 파싱
                 string orderId = child.Key;
                 string riderId = ParseString(child, "riderId", "");
                 string address = ParseString(child, "deliveryAddress", "주소 미입력");
 
-                // 아직 배차되지 않은(riderId가 없는) 주문만 표시
-                if (string.IsNullOrEmpty(riderId))
-                {
-                    // UI 생성을 위한 임시 객체
-                    Order order = new Order("");
-                    order.orderId = orderId;
-                    order.riderId = riderId;
-                    order.deliveryAddress = address;
+                // 상태값 가져오기 (없으면 -1)
+                int status = -1;
+                if (child.HasChild("status"))
+                    int.TryParse(child.Child("status").Value.ToString(), out status);
 
-                    CreateDeliveryItem(order);
+                long discountPrice = 0;
+                if (child.HasChild("totalDiscountPrice"))
+                    long.TryParse(child.Child("totalDiscountPrice").Value.ToString(), out discountPrice);
+
+
+                // 주문 객체 생성
+                Order order = new Order("");
+                order.orderId = orderId;
+                order.riderId = riderId;
+                order.deliveryAddress = address;
+                order.status = (OrderStatus)status;
+                order.totalDiscountPrice = discountPrice;
+
+                // ==========================================================
+                // ★ [분류 로직] 상태와 라이더 ID를 보고 어디에 넣을지 결정
+                // ==========================================================
+
+                // Case A: [배차 대기] -> 상태가 'Prepared(5)' 이고, 라이더가 없는 경우
+                if (status == (int)OrderStatus.Prepared && string.IsNullOrEmpty(riderId))
+                {
+                    CreateDeliveryItem(order, availableContainer, false); // isMine = false
                 }
+
+                // Case B: [내 배달] -> 상태가 'Delivering(6)' 이고, 라이더가 '나'인 경우
+                else if (status == (int)OrderStatus.Delivering && riderId == myUid)
+                {
+                    CreateDeliveryItem(order, myDeliveryContainer, true); // isMine = true
+                }
+
+                // 그 외(완료된 주문, 취소된 주문, 남이 배달중인 주문)는 그냥 무시(Pass)
             }
         }
     }
 
-    private void CreateDeliveryItem(Order order)
+    private void CreateDeliveryItem(Order order, Transform parent, bool isMine)
     {
-        GameObject go = Instantiate(deliveryItemPrefab, deliveryContainer);
+        GameObject go = Instantiate(deliveryItemPrefab, parent);
         var itemUI = go.GetComponent<StaffDeliveryItemUI>();
-        itemUI.Setup(order, OnAcceptOrderClicked);
+        itemUI.Setup(order, isMine, OnItemActionClicked);
     }
 
-    // ★ [핵심 수정] 트랜잭션 로직 변경
-    private void OnAcceptOrderClicked(Order order)
+    // --- 버튼 클릭 통합 핸들러 ---
+    private void OnItemActionClicked(Order order, bool isMine)
+    {
+        if (isMine) CompleteDelivery(order); // 배달 완료 처리
+        else AcceptOrder(order);             // 주문 수락 처리
+    }
+
+    // --- 2. [핵심] 주문 수락 트랜잭션 (검증 강화) ---
+    private void AcceptOrder(Order order)
     {
         Debug.Log($"주문 수락 시도: {order.orderId}");
         DatabaseReference orderRef = dbReference.Child("orders").Child(order.orderId);
@@ -88,16 +123,31 @@ public class SDeliveryStatusPanel : MonoBehaviour
             var data = mutableData.Value as Dictionary<string, object>;
             if (data == null) return TransactionResult.Success(mutableData);
 
-            // 1. 이미 누가 가져갔는지 확인
+            // [검증 1] 이미 배차된 주문인지 확인 (riderId 존재 여부)
             if (data.ContainsKey("riderId") && !string.IsNullOrEmpty(data["riderId"].ToString()))
             {
-                // 이미 선점됨 -> 그냥 현재 상태 그대로 성공 처리 (값 변경 안 함)
-                // (Abort를 하면 에러 처리가 복잡해지므로, Success로 반환하되 내가 먹었는지 나중에 확인)
-                return TransactionResult.Success(mutableData);
+                return TransactionResult.Abort(); // 이미 누가 가져감 -> 실패
             }
 
-            // 2. 비어있다면 내 UID 등록 (내가 먹음)
+            // [검증 2] 주문 상태가 여전히 'Prepared(4)'인지 확인
+            // (만약 직원이 취소했거나 상태가 바뀌었다면 수락 불가)
+            int currentStatus = -1;
+            if (data.ContainsKey("status"))
+            {
+                int.TryParse(data["status"].ToString(), out currentStatus);
+            }
+
+            if (currentStatus != (int)OrderStatus.Prepared)
+            {
+                return TransactionResult.Abort(); // 상태가 변함 -> 실패
+            }
+
+            // [성공 시 데이터 변경]
+            // 1. 내 아이디 등록
             data["riderId"] = myUid;
+            // 2. 상태를 'Delivering(5)'으로 변경
+            data["status"] = (int)OrderStatus.Delivering;
+
             mutableData.Value = data;
             return TransactionResult.Success(mutableData);
         })
@@ -111,42 +161,102 @@ public class SDeliveryStatusPanel : MonoBehaviour
 
             if (task.IsCompleted)
             {
-                // ★ 수정된 부분: task.Result는 DataSnapshot입니다. IsCommitted가 없습니다.
-                // 대신 결과 데이터(Snapshot)를 확인해서 riderId가 '나'인지 확인합니다.
+                // 결과 확인: riderId가 내 것으로 바뀌었는지 확인
                 DataSnapshot snapshot = task.Result;
-                string winnerId = "";
-
-                if (snapshot.HasChild("riderId"))
-                {
-                    winnerId = snapshot.Child("riderId").Value.ToString();
-                }
+                string winnerId = snapshot.HasChild("riderId") ? snapshot.Child("riderId").Value.ToString() : "";
 
                 UnityMainThreadDispatcher.Instance().Enqueue(() =>
                 {
                     if (winnerId == myUid)
                     {
-                        // 성공: 내가 배차 받음
-                        Debug.Log("배차 성공! 내가 배달합니다.");
-                        LoadDeliveryOrders();
+                        Debug.Log("배차 성공!");
                         SetRiderStatus("배달중");
+                        LoadDeliveryOrders(); // 목록 새로고침
                     }
                     else
                     {
-                        // 실패: 다른 사람이 먼저 채감
-                        Debug.LogWarning("이미 다른 기사님이 수락했습니다.");
-                        UIManager.Instance.ShowTemporaryStatus("이미 배차된 주문입니다.", 2f);
-                        LoadDeliveryOrders(); // 목록 갱신
+                        // 실패 (다른 기사가 가져감 or 상태 변경됨)
+                        UIManager.Instance.ShowTemporaryStatus("이미 배차되었거나 상태가 변경된 주문입니다.", 2f);
+                        LoadDeliveryOrders();
                     }
                 });
             }
         });
     }
 
+    // --- 3. 배달 완료 처리 ---
+    private void CompleteDelivery(Order order)
+    {
+        Debug.Log($"배달 완료 처리: {order.orderId}");
+
+        // 1. 주문 상태 변경 (Delivering -> Completed)
+        var updates = new Dictionary<string, object>();
+        updates[$"orders/{order.orderId}/status"] = (int)OrderStatus.Completed;
+
+        dbReference.UpdateChildrenAsync(updates).ContinueWith(task =>
+        {
+            if (task.IsCompleted)
+            {
+                // ★ [추가] 매출액 및 완료 횟수 집계 (store_info)
+                // 요청하신 대로 'totalDiscountPrice'를 넘겨줍니다.
+                UpdateStoreSalesInfo(order.totalDiscountPrice);
+
+                UnityMainThreadDispatcher.Instance().Enqueue(() =>
+                {
+                    UIManager.Instance.ShowTemporaryStatus("배달 완료! 수고하셨습니다.", 2f);
+                    SetRiderStatus("대기중");
+                    LoadDeliveryOrders();
+                });
+            }
+            else
+            {
+                Debug.LogError($"상태 변경 실패: {task.Exception}");
+            }
+        });
+    }
+
+    private void UpdateStoreSalesInfo(long finalPrice)
+    {
+        DatabaseReference storeRef = dbReference.Child("store_info");
+
+        storeRef.RunTransaction(mutableData =>
+        {
+            var data = mutableData.Value as Dictionary<string, object>;
+            if (data == null) data = new Dictionary<string, object>();
+
+            // A. 총 매출 더하기 (totalSales)
+            long currentSales = 0;
+            if (data.ContainsKey("totalSales"))
+            {
+                // 안전한 형변환
+                long.TryParse(data["totalSales"].ToString(), out currentSales);
+            }
+
+            data["totalSales"] = currentSales + finalPrice;
+
+            // B. 완료된 주문 수 +1 (completedOrderCount)
+            long currentCompleted = 0;
+            if (data.ContainsKey("completedOrderCount"))
+            {
+                long.TryParse(data["completedOrderCount"].ToString(), out currentCompleted);
+            }
+
+            data["completedOrderCount"] = currentCompleted + 1;
+
+            // 변경된 데이터 저장
+            mutableData.Value = data;
+            return TransactionResult.Success(mutableData);
+        });
+    }
+
+    // --- 기타 헬퍼 함수들 ---
     private void SetRiderStatus(string status)
     {
-        if (string.IsNullOrEmpty(myUid)) return;
-        dbReference.Child("users").Child(myUid).Child("workStatus").SetValueAsync(status);
-        UpdateRiderStatusUI(status);
+        if (!string.IsNullOrEmpty(myUid))
+        {
+            dbReference.Child("users").Child(myUid).Child("workStatus").SetValueAsync(status);
+            UpdateRiderStatusUI(status);
+        }
     }
 
     private void UpdateRiderStatusUI(string status)
@@ -158,7 +268,18 @@ public class SDeliveryStatusPanel : MonoBehaviour
     }
 
     private void OnBackClicked() { UIManager.Instance.ShowPanel("StaffMainPanel"); }
-    private void ClearContainer() { foreach (Transform child in deliveryContainer) Destroy(child.gameObject); }
+
+    private void ClearContainer(Transform t) { foreach (Transform child in t) Destroy(child.gameObject); }
+
+    // 데이터 파싱 헬퍼
+    private Order CreateOrderObject(DataSnapshot child)
+    {
+        Order order = new Order("");
+        order.orderId = child.Key;
+        order.riderId = ParseString(child, "riderId", "");
+        order.deliveryAddress = ParseString(child, "deliveryAddress", "주소 미입력");
+        return order;
+    }
 
     private string ParseString(DataSnapshot s, string key, string def)
     {

@@ -1,8 +1,9 @@
+using Firebase.Database; // Firebase 사용
+using System.Collections.Generic;
+using System.Text;       // StringBuilder 사용
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using TMPro;
-using Firebase.Database; // Firebase 사용
-using System.Text;       // StringBuilder 사용
 
 public class StaffOrderConfirmUI : MonoBehaviour
 {
@@ -121,6 +122,7 @@ public class StaffOrderConfirmUI : MonoBehaviour
         {
             // [예약 대기] 상태 -> 수락 / 취소 가능
             case OrderStatus.Reserved:
+            case OrderStatus.Placed:
                 confirmBtn.gameObject.SetActive(true);
                 cancelBtn.gameObject.SetActive(true);
                 break;
@@ -149,7 +151,30 @@ public class StaffOrderConfirmUI : MonoBehaviour
     private void OnConfirmClicked()
     {
         UpdateOrderStatus(OrderStatus.Confirmed);
+
+        IncreaseTotalOrderCount();
+
         ClosePanel();
+    }
+
+    private void IncreaseTotalOrderCount()
+    {
+        DatabaseReference storeRef = dbReference.Child("store_info");
+        storeRef.RunTransaction(mutableData =>
+        {
+            var data = mutableData.Value as Dictionary<string, object>;
+            if (data == null) data = new Dictionary<string, object>();
+
+            long currentTotal = 0;
+            if (data.ContainsKey("totalOrderCount"))
+                currentTotal = (long)data["totalOrderCount"];
+
+            data["totalOrderCount"] = currentTotal + 1;
+
+            mutableData.Value = data;
+            return TransactionResult.Success(mutableData);
+        });
+        // 결과는 굳이 기다리지 않아도 되므로 ContinueWith 생략 가능 (Fire and Forget)
     }
 
     // [취소] 버튼: -> Canceled
@@ -171,7 +196,7 @@ public class StaffOrderConfirmUI : MonoBehaviour
         else if (currentOrder.status == OrderStatus.Cooking)
         {
             // 조리 완료 (배달 시작)
-            UpdateOrderStatus(OrderStatus.Delivering);
+            UpdateOrderStatus(OrderStatus.Prepared);
             ClosePanel();
         }
     }

@@ -486,7 +486,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StaffDeliveryItemUI
   statusText: {fileID: 3613683424720784916}
   addressText: {fileID: 2549262658469491620}
-  acceptBtn: {fileID: 7406284907155878564}
+  actionBtn: {fileID: 7406284907155878564}
+  btnText: {fileID: 7525107792514794897}
 --- !u!1 &9082140202888646906
 GameObject:
   m_ObjectHideFlags: 0
